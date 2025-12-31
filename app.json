@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#D4436A"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.djellaba.elbasma",
@@ -40,6 +42,11 @@
     },
     "plugins": [
       "expo-localization"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "bbaa9a73-d8ec-4ee0-816c-c2505f34613b"
+      }
+    }
   }
 }

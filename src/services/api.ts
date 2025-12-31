@@ -2,25 +2,41 @@ import axios, { AxiosInstance } from 'axios';
 import { Platform } from 'react-native';
 import { Product, Order, CustomCategory } from '@/types';
 
-// Configuration - automatically detect the correct URL based on platform
-// Set EXPO_PUBLIC_API_URL in your environment for production
+// ============================================
+// API CONFIGURATION
+// ============================================
+// PRODUCTION URL (Railway)
+const PRODUCTION_API_URL = 'https://web-production-1c70.up.railway.app/api';
+
+// For DEVELOPMENT: Your local computer IP
+const DEV_ANDROID_URL = 'http://192.168.43.220:3001/api';
+const DEV_IOS_URL = 'http://localhost:3001/api';
+
+// Set to true for production, false for local development
+const USE_PRODUCTION = true;
+
+// Automatically detect the correct URL
 const getApiUrl = () => {
-  // Use environment variable if set (for production)
+  // Use production URL if enabled
+  if (USE_PRODUCTION && PRODUCTION_API_URL) {
+    return PRODUCTION_API_URL;
+  }
+  
+  // Use environment variable if set
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
   
   // Development defaults
   if (Platform.OS === 'android') {
-    // For physical Android device - change this IP to your computer's local IP
-    return 'http://192.168.43.220:3001/api';
+    return DEV_ANDROID_URL;
   }
   
-  // iOS simulator, web, or other
-  return 'http://localhost:3001/api';
+  return DEV_IOS_URL;
 };
 
 const API_BASE_URL = getApiUrl();
+console.log('🌐 API URL:', API_BASE_URL);
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({

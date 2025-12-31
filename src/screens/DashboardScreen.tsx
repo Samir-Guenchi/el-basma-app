@@ -27,6 +27,9 @@ const getApiUrl = () => {
   }
   return 'http://localhost:3001';
 };
+const USE_PRODUCTION = true;
+const PRODUCTION_URL = 'https://web-production-1c70.up.railway.app';
+const API_URL = USE_PRODUCTION ? PRODUCTION_URL : getApiUrl();
 
 const getImageUrl = (uri: string): string => {
   if (!uri) return '';
