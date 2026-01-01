@@ -129,6 +129,13 @@ export const PublishingScreen: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    
+    // Auto-refresh every 10 seconds for multi-user sync
+    const interval = setInterval(() => {
+      fetchData();
+    }, 10000);
+    
+    return () => clearInterval(interval);
   }, [fetchData]);
 
   const onRefresh = () => {

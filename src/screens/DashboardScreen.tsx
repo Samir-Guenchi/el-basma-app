@@ -52,6 +52,13 @@ export const DashboardScreen: React.FC = () => {
     fetchSettings();
     fetchCategories();
     fetchProducts();
+    
+    // Auto-refresh every 10 seconds for multi-user sync
+    const interval = setInterval(() => {
+      fetchProducts();
+    }, 10000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const onRefresh = async () => {

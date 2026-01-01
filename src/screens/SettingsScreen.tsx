@@ -84,6 +84,14 @@ export const SettingsScreen: React.FC = () => {
   useEffect(() => {
     fetchLLMSettings();
     fetchCommentSettings();
+    
+    // Auto-refresh every 10 seconds for multi-user sync
+    const interval = setInterval(() => {
+      fetchLLMSettings();
+      fetchCommentSettings();
+    }, 10000);
+    
+    return () => clearInterval(interval);
   }, []);
   
   const fetchLLMSettings = async () => {
