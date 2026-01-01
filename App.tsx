@@ -7,11 +7,31 @@ import { initI18n } from '@/i18n';
 import { AppNavigator } from '@/navigation/AppNavigator';
 import { ThemeProvider } from '@/theme/ThemeContext';
 import { ToastProvider } from '@/context/ToastContext';
-import { useSettingsStore } from '@/store';
+import { useSettingsStore, useProductStore } from '@/store';
 
 function AppContent() {
-  const { themeMode } = useSettingsStore();
+  const { themeMode, fetchSettings, fetchCategories } = useSettingsStore();
+  const { fetchProducts } = useProductStore();
   const isDark = themeMode === 'dark';
+
+  // Fetch all data from server on app start
+  useEffect(() => {
+    const loadData = async () => {
+      console.log('🚀 Loading data from server...');
+      try {
+        await Promise.all([
+          fetchSettings(),
+          fetchCategories(),
+          fetchProducts(),
+        ]);
+        console.log('✅ All data loaded from server');
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
+    };
+    
+    loadData();
+  }, []);
 
   return (
     <ThemeProvider>
