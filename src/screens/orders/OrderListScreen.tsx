@@ -153,6 +153,22 @@ export const OrderListScreen: React.FC = () => {
     return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
   };
 
+  // Get status styling
+  const getStatusStyle = (status: OrderStatus) => {
+    switch (status) {
+      case 'pending':
+        return { bg: colors.warningSoft, color: colors.warning, icon: 'clock' as const, label: t('orders.pending') };
+      case 'confirmed':
+        return { bg: colors.primarySoft, color: colors.primary, icon: 'check-circle' as const, label: t('orders.confirmed') };
+      case 'completed':
+        return { bg: colors.successSoft, color: colors.success, icon: 'check' as const, label: t('orders.completed') };
+      case 'cancelled':
+        return { bg: colors.dangerSoft || '#fee2e2', color: colors.danger || '#ef4444', icon: 'x-circle' as const, label: t('orders.cancelled') };
+      default:
+        return { bg: colors.warningSoft, color: colors.warning, icon: 'clock' as const, label: status };
+    }
+  };
+
   const callCustomer = (phone: string) => {
     Linking.openURL(`tel:${phone.replace(/\s/g, '')}`);
   };
@@ -315,7 +331,10 @@ export const OrderListScreen: React.FC = () => {
     }
   };
 
-  const renderOrderCard = ({ item }: { item: Order }) => (
+  const renderOrderCard = ({ item }: { item: Order }) => {
+    const statusStyle = getStatusStyle(item.status);
+    
+    return (
     <TouchableOpacity 
       style={[styles.orderCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
       onPress={() => setSelectedOrder(item)}
@@ -336,9 +355,9 @@ export const OrderListScreen: React.FC = () => {
             </View>
           </View>
         </View>
-        <View style={[styles.statusBadge, { backgroundColor: colors.warningSoft }]}>
-          <Feather name="clock" size={12} color={colors.warning} />
-          <Text style={[styles.statusText, { color: colors.warning }]}>{t('orders.pending')}</Text>
+        <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+          <Feather name={statusStyle.icon} size={12} color={statusStyle.color} />
+          <Text style={[styles.statusText, { color: statusStyle.color }]}>{statusStyle.label}</Text>
         </View>
       </View>
 
@@ -346,7 +365,7 @@ export const OrderListScreen: React.FC = () => {
         <View style={[styles.productIcon, { backgroundColor: colors.primarySoft }]}>
           <MaterialCommunityIcons name="hanger" size={18} color={colors.primary} />
         </View>
-        <View style={styles.productInfo}>
+        <View style={styles.productInfo}>>
           <Text style={[styles.productName, { color: colors.text }]} numberOfLines={1}>{item.productName}</Text>
           <Text style={[styles.productQty, { color: colors.textMuted }]}>{t('orders.quantity')}: {item.quantity}</Text>
         </View>
@@ -383,6 +402,7 @@ export const OrderListScreen: React.FC = () => {
       </View>
     </TouchableOpacity>
   );
+  };
 
   if (loading) {
     return (
