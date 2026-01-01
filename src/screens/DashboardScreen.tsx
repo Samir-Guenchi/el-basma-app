@@ -35,7 +35,7 @@ const getImageUrl = (uri: string): string => {
   if (!uri) return '';
   if (uri.startsWith('http://') || uri.startsWith('https://')) return uri;
   if (uri.startsWith('file://') || uri.startsWith('content://')) return uri;
-  if (uri.startsWith('/uploads/') || uri.startsWith('/')) return `${getApiUrl()}${uri}`;
+  if (uri.startsWith('/uploads/') || uri.startsWith('/')) return `${API_URL}${uri}`;
   return uri;
 };
 

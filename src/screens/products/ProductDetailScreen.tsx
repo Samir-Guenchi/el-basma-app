@@ -25,11 +25,11 @@ type RouteProps = RouteProp<ProductStackParamList, 'ProductDetail'>;
 const getApiUrl = () => Platform.OS === 'android' ? 'http://192.168.43.220:3001' : 'http://localhost:3001';
 const USE_PRODUCTION = true;
 const PRODUCTION_URL = 'https://web-production-1c70.up.railway.app';
-const getApiUrlFinal = () => USE_PRODUCTION ? PRODUCTION_URL : getApiUrl();
+const API_URL = USE_PRODUCTION ? PRODUCTION_URL : getApiUrl();
 const getImageUrl = (uri: string): string => {
   if (!uri) return '';
   if (uri.startsWith('http://') || uri.startsWith('https://') || uri.startsWith('file://') || uri.startsWith('content://')) return uri;
-  return `${getApiUrlFinal()}${uri}`;
+  return `${API_URL}${uri}`;
 };
 
 interface PublishingStatus {
@@ -54,7 +54,7 @@ export const ProductDetailScreen: React.FC = () => {
   // Fetch publishing status
   useEffect(() => {
     if (productId) {
-      fetch(`${getApiUrl()}/api/publishing/products/${productId}/status`)
+      fetch(`${API_URL}/api/publishing/products/${productId}/status`)
         .then(res => res.json())
         .then(data => setPublishingStatus(data))
         .catch(err => console.log('Publishing status error:', err));

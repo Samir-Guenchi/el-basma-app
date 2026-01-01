@@ -50,6 +50,9 @@ const PLATFORMS = [
 const getApiUrl = () => Platform.OS === 'android' ? 'http://192.168.43.220:3001' : 'http://localhost:3001';
 const USE_PRODUCTION = true;
 const PRODUCTION_URL = 'https://web-production-1c70.up.railway.app';
+const API_URL = USE_PRODUCTION ? PRODUCTION_URL : getApiUrl();
+const USE_PRODUCTION = true;
+const PRODUCTION_URL = 'https://web-production-1c70.up.railway.app';
 const getApiUrlFinal = () => USE_PRODUCTION ? PRODUCTION_URL : getApiUrl();
 const getImageUrl = (uri: string): string => {
   if (!uri) return '';
@@ -73,7 +76,7 @@ export const ProductEditScreen: React.FC = () => {
   // Fetch publishing status for existing product
   useEffect(() => {
     if (isEditing && product?.id) {
-      fetch(`${getApiUrl()}/api/publishing/products/${product.id}/status`)
+      fetch(`${API_URL}/api/publishing/products/${product.id}/status`)
         .then(res => res.json())
         .then(data => setPublishingStatus(data))
         .catch(err => console.log('Publishing status error:', err));
@@ -192,7 +195,7 @@ export const ProductEditScreen: React.FC = () => {
     if (!name.trim()) { showError('Entrez le nom du produit'); return; }
     setIsGeneratingCaption(true);
     try {
-      const res = await fetch(`${getApiUrl()}/api/publishing/generate-caption`, {
+      const res = await fetch(`${API_URL}/api/publishing/generate-caption`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -685,10 +688,10 @@ export const ProductEditScreen: React.FC = () => {
                       if (item.uri.startsWith('file://') || item.uri.startsWith('content://')) {
                         try {
                           const result = await uploadApi.uploadImage(item.uri, undefined, name.trim());
-                          uploadedUrls.push(result.success && result.url ? `${getApiUrl()}${result.url}` : item.uri);
+                          uploadedUrls.push(result.success && result.url ? `${API_URL}${result.url}` : item.uri);
                         } catch { uploadedUrls.push(item.uri); }
                       } else if (item.uri.startsWith('/uploads')) {
-                        uploadedUrls.push(`${getApiUrl()}${item.uri}`);
+                        uploadedUrls.push(`${API_URL}${item.uri}`);
                       } else {
                         uploadedUrls.push(item.uri);
                       }
@@ -706,7 +709,7 @@ export const ProductEditScreen: React.FC = () => {
                     else { await addProduct(productData); }
                     
                     // Publish with images
-                    const res = await fetch(`${getApiUrl()}/api/publishing/publish`, {
+                    const res = await fetch(`${API_URL}/api/publishing/publish`, {
                       method: 'POST', headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({ 
                         product: { name, description, price: parseFloat(price), category, colors: inventory.map(c => c.color), sizes: [...new Set(inventory.flatMap(c => c.sizes.map(s => s.size)))] }, 

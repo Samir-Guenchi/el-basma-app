@@ -161,7 +161,7 @@ export const OrderListScreen: React.FC = () => {
 
   const addCustomerFromOrder = async (order: Order, status: 'completed' | 'cancelled') => {
     try {
-      await fetch(`${getApiUrl()}/api/customers/from-order`, {
+      await fetch(`${API_URL}/api/customers/from-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
