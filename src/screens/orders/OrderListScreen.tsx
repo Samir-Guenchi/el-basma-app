@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   Platform,
   RefreshControl,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -35,44 +36,22 @@ interface Order {
   customerName: string;
   customerPhone: string;
   productName: string;
+  productId?: string;
   quantity: number;
   totalPrice: number;
   status: OrderStatus;
   date: string;
   notes: string;
+  createdAt?: string;
 }
-
-const DEMO_ORDERS: Order[] = [
-  {
-    id: '1',
-    customerName: 'Fatima Benali',
-    customerPhone: '0555 12 34 56',
-    productName: 'Djellaba Traditionnelle Blanche',
-    quantity: 1,
-    totalPrice: 15000,
-    status: 'pending',
-    date: '2024-12-28',
-    notes: 'Taille M, livraison à domicile',
-  },
-  {
-    id: '2',
-    customerName: 'Amina Khelifi',
-    customerPhone: '0661 98 76 54',
-    productName: 'Caftan Marocain Doré',
-    quantity: 1,
-    totalPrice: 25000,
-    status: 'pending',
-    date: '2024-12-27',
-    notes: 'Pour mariage, besoin avant le 5 janvier',
-  },
-];
 
 export const OrderListScreen: React.FC = () => {
   const { themeMode } = useSettingsStore();
   const { products } = useProductStore();
   const { showSuccess, showError, showWarning } = useToast();
   const { t } = useTranslation();
-  const [orders, setOrders] = useState<Order[]>(DEMO_ORDERS);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -95,6 +74,52 @@ export const OrderListScreen: React.FC = () => {
   
   const isDark = themeMode === 'dark';
 
+  // Fetch orders from server
+  const fetchOrders = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/orders`);
+      if (res.ok) {
+        const data = await res.json();
+        // Transform data to match our interface
+        const formattedOrders = data.map((o: any) => ({
+          id: o.id,
+          customerName: o.customerName || 'Client',
+          customerPhone: o.customerPhone || '',
+          productName: o.productName || '',
+          productId: o.productId,
+          quantity: o.quantity || 1,
+          totalPrice: o.totalPrice || 0,
+          status: o.status || 'pending',
+          date: o.createdAt ? o.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
+          notes: o.notes || '',
+          createdAt: o.createdAt,
+        }));
+        setOrders(formattedOrders);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+    
+    // Auto-refresh every 10 seconds for multi-user sync
+    const interval = setInterval(() => {
+      fetchOrders();
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchOrders();
+  };
+
   const colors = {
     bg: isDark ? '#121212' : '#F5F5F5',
     surface: isDark ? '#1E1E1E' : '#FFFFFF',
@@ -113,11 +138,6 @@ export const OrderListScreen: React.FC = () => {
     dangerSoft: isDark ? 'rgba(231, 76, 60, 0.15)' : 'rgba(231, 76, 60, 0.08)',
     accent: '#9B59B6',
   };
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1000);
-  }, []);
 
   const filteredOrders = orders.filter(order => {
     const query = searchQuery.toLowerCase();
@@ -143,19 +163,35 @@ export const OrderListScreen: React.FC = () => {
     Linking.openURL(`whatsapp://send?phone=${cleanPhone}&text=${encodeURIComponent(message)}`);
   };
 
-  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
+  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     const order = orders.find(o => o.id === orderId);
+    if (!order) return;
     
-    if (order && (newStatus === 'completed' || newStatus === 'cancelled')) {
-      addCustomerFromOrder(order, newStatus);
-      setOrders(prev => prev.filter(o => o.id !== orderId));
-      setSelectedOrder(null);
+    try {
+      // Update on server
+      await fetch(`${API_URL}/api/orders/${orderId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
       
-      if (newStatus === 'completed') {
-        showSuccess('Commande validée!');
+      if (newStatus === 'completed' || newStatus === 'cancelled') {
+        addCustomerFromOrder(order, newStatus);
+        setOrders(prev => prev.filter(o => o.id !== orderId));
+        setSelectedOrder(null);
+        
+        if (newStatus === 'completed') {
+          showSuccess('Commande validée!');
+        } else {
+          showWarning('Commande annulée');
+        }
       } else {
-        showWarning('Commande annulée');
+        // Just update status locally for other statuses
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
       }
+    } catch (error) {
+      console.error('Error updating order:', error);
+      showError('Erreur de mise à jour');
     }
   };
 
@@ -223,7 +259,7 @@ export const OrderListScreen: React.FC = () => {
     });
   };
 
-  const addNewOrder = () => {
+  const addNewOrder = async () => {
     if (!newOrder.customerName.trim()) {
       showError(t('orders.customerRequired'));
       return;
@@ -234,22 +270,49 @@ export const OrderListScreen: React.FC = () => {
     }
     
     const product = products.find(p => p.name === newOrder.productName);
-    const order: Order = {
-      id: Date.now().toString(),
+    const orderData = {
       customerName: newOrder.customerName.trim(),
       customerPhone: newOrder.customerPhone.trim(),
+      productId: product?.id,
       productName: newOrder.productName,
       quantity: parseInt(newOrder.quantity) || 1,
       totalPrice: (product?.price || 0) * (parseInt(newOrder.quantity) || 1),
-      status: 'pending',
-      date: new Date().toISOString().split('T')[0],
       notes: newOrder.notes.trim(),
     };
     
-    setOrders(prev => [order, ...prev]);
-    setNewOrder({ customerName: '', customerPhone: '', productName: '', quantity: '1', notes: '' });
-    setShowNewOrder(false);
-    showSuccess(t('orders.orderCreated'));
+    try {
+      // Save to server
+      const res = await fetch(`${API_URL}/api/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData),
+      });
+      
+      if (res.ok) {
+        const savedOrder = await res.json();
+        const order: Order = {
+          id: savedOrder.id,
+          customerName: savedOrder.customerName,
+          customerPhone: savedOrder.customerPhone || '',
+          productName: savedOrder.productName,
+          productId: savedOrder.productId,
+          quantity: savedOrder.quantity || 1,
+          totalPrice: savedOrder.totalPrice || 0,
+          status: savedOrder.status || 'pending',
+          date: savedOrder.createdAt ? savedOrder.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
+          notes: savedOrder.notes || '',
+        };
+        setOrders(prev => [order, ...prev]);
+        setNewOrder({ customerName: '', customerPhone: '', productName: '', quantity: '1', notes: '' });
+        setShowNewOrder(false);
+        showSuccess(t('orders.orderCreated'));
+      } else {
+        showError('Erreur lors de la création');
+      }
+    } catch (error) {
+      console.error('Error creating order:', error);
+      showError('Erreur de connexion');
+    }
   };
 
   const renderOrderCard = ({ item }: { item: Order }) => (
@@ -320,6 +383,17 @@ export const OrderListScreen: React.FC = () => {
       </View>
     </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={{ color: colors.textMuted, marginTop: 12 }}>Chargement des commandes...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]} edges={['top']}>

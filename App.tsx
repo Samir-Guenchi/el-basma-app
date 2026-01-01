@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ActivityIndicator, StyleSheet, AppState, AppStateStatus } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initI18n } from '@/i18n';
 import { AppNavigator } from '@/navigation/AppNavigator';
 import { ThemeProvider } from '@/theme/ThemeContext';
 import { ToastProvider } from '@/context/ToastContext';
-import { useSettingsStore, useProductStore } from '@/store';
+import { useSettingsStore, useProductStore, useLLMSettingsStore } from '@/store';
+import { startAutoSync, stopAutoSync } from '@/services/syncService';
 
 function AppContent() {
   const { themeMode, fetchSettings, fetchCategories } = useSettingsStore();
   const { fetchProducts } = useProductStore();
+  const { fetchLLMSettings, fetchCommentSettings } = useLLMSettingsStore();
   const isDark = themeMode === 'dark';
 
-  // Fetch all data from server on app start
+  // Fetch all data from server on app start and set up auto-sync
   useEffect(() => {
     const loadData = async () => {
       console.log('🚀 Loading data from server...');
@@ -23,14 +25,37 @@ function AppContent() {
           fetchSettings(),
           fetchCategories(),
           fetchProducts(),
+          fetchLLMSettings(),
+          fetchCommentSettings(),
         ]);
         console.log('✅ All data loaded from server');
+        
+        // Start auto-sync for multi-user support
+        startAutoSync();
       } catch (error) {
         console.error('Error loading data:', error);
       }
     };
     
     loadData();
+
+    // Handle app state changes (background/foreground)
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        console.log('📱 App came to foreground - starting sync');
+        startAutoSync();
+      } else if (nextAppState === 'background') {
+        console.log('📱 App went to background - stopping sync');
+        stopAutoSync();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      stopAutoSync();
+      subscription.remove();
+    };
   }, []);
 
   return (

@@ -49,17 +49,20 @@ export const useSettingsStore = create<SettingsStore>()(
         set({ isLoading: true });
         try {
           const settings = await settingsApi.getSettings();
+          // Get current local preferences (don't override from server)
+          const { locale: currentLocale, themeMode: currentTheme } = get();
+          
           set({
-            locale: settings.locale || 'fr',
+            // Keep local preferences (language & theme) - NOT synced
+            locale: currentLocale,
+            themeMode: currentTheme,
+            // Sync business settings from server
             currency: settings.currency || 'DZD',
-            themeMode: settings.themeMode || 'light',
             lowStockThreshold: settings.lowStockThreshold || 5,
             notificationsEnabled: settings.notificationsEnabled ?? true,
             isLoading: false,
             isOnline: true,
           });
-          // Apply language
-          await changeLanguage(settings.locale || 'fr');
         } catch (error) {
           console.error('Error fetching settings:', error);
           set({ isLoading: false, isOnline: false });
@@ -78,21 +81,20 @@ export const useSettingsStore = create<SettingsStore>()(
         }
       },
 
+      // LOCAL ONLY - not synced to server
       setLocale: async (locale: Locale) => {
         set({ isLoading: true });
         try {
           await changeLanguage(locale);
           set({ locale, isLoading: false });
-          // Sync to backend
-          if (get().isOnline) {
-            await settingsApi.updateSettings({ locale });
-          }
+          // NOT synced to server - local preference only
         } catch (error) {
           set({ isLoading: false });
           throw error;
         }
       },
 
+      // SYNCED to server
       setCurrency: (currency: Currency) => {
         set({ currency });
         // Sync to backend
@@ -101,6 +103,7 @@ export const useSettingsStore = create<SettingsStore>()(
         }
       },
 
+      // SYNCED to server
       setNotificationsEnabled: (enabled: boolean) => {
         set({ notificationsEnabled: enabled });
         if (get().isOnline) {
@@ -108,6 +111,7 @@ export const useSettingsStore = create<SettingsStore>()(
         }
       },
 
+      // SYNCED to server
       setLowStockThreshold: (threshold: number) => {
         const value = Math.max(0, threshold);
         set({ lowStockThreshold: value });
@@ -116,11 +120,10 @@ export const useSettingsStore = create<SettingsStore>()(
         }
       },
 
+      // LOCAL ONLY - not synced to server
       setThemeMode: (mode: ThemeMode) => {
         set({ themeMode: mode });
-        if (get().isOnline) {
-          settingsApi.updateSettings({ themeMode: mode }).catch(console.error);
-        }
+        // NOT synced to server - local preference only
       },
 
       addCategory: async (category: CustomCategory) => {
@@ -167,13 +170,10 @@ export const useSettingsStore = create<SettingsStore>()(
     {
       name: 'settings-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      // Only persist LOCAL preferences (language & theme)
       partialize: (state) => ({
         locale: state.locale,
-        currency: state.currency,
-        notificationsEnabled: state.notificationsEnabled,
-        lowStockThreshold: state.lowStockThreshold,
         themeMode: state.themeMode,
-        customCategories: state.customCategories,
       }),
     }
   )

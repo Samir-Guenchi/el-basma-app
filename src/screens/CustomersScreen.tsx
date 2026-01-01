@@ -82,6 +82,13 @@ export const CustomersScreen: React.FC = () => {
 
   useEffect(() => {
     fetchCustomers();
+    
+    // Auto-refresh every 10 seconds for multi-user sync
+    const interval = setInterval(() => {
+      fetchCustomers();
+    }, 10000);
+    
+    return () => clearInterval(interval);
   }, [fetchCustomers]);
 
   // Update filter when navigating with params
