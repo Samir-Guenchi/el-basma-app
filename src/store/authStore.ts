@@ -67,5 +67,3 @@ export const selectUser = (state: AuthStore) => state.user;
 export const selectIsAuthenticated = (state: AuthStore) => state.isAuthenticated;
 export const selectUserRole = (state: AuthStore) => state.user?.role;
 export const selectIsOwner = (state: AuthStore) => state.user?.role === 'owner';
-export const selectIsStaff = (state: AuthStore) => state.user?.role === 'staff';
-export const selectIsCustomer = (state: AuthStore) => state.user?.role === 'customer';

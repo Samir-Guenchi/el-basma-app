@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
-import { useProductStore } from '@/store';
 
 interface OfflineState {
   isOnline: boolean;
@@ -14,8 +13,6 @@ export const useOffline = () => {
     isConnected: null,
     connectionType: null,
   });
-
-  const { pendingChanges, syncPendingChanges, lastSynced } = useProductStore();
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((netState: NetInfoState) => {
@@ -38,24 +35,7 @@ export const useOffline = () => {
     return () => unsubscribe();
   }, []);
 
-  const sync = useCallback(async () => {
-    if (state.isOnline && pendingChanges.length > 0) {
-      await syncPendingChanges();
-    }
-  }, [state.isOnline, pendingChanges.length, syncPendingChanges]);
-
-  // Auto-sync when coming back online
-  useEffect(() => {
-    if (state.isOnline && pendingChanges.length > 0) {
-      sync();
-    }
-  }, [state.isOnline, pendingChanges.length, sync]);
-
   return {
     ...state,
-    pendingChangesCount: pendingChanges.length,
-    lastSynced,
-    sync,
-    hasPendingChanges: pendingChanges.length > 0,
   };
 };
