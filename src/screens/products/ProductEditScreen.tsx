@@ -32,7 +32,7 @@ interface PublishingStatus {
   tiktok: { published: boolean; publishedAt: string | null };
 }
 
-const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
+const SIZES = ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL', 'Standard'];
 const COLORS_LIST = ['Noir', 'Blanc', 'Beige', 'Rouge', 'Bleu', 'Vert', 'Rose', 'Doré', 'Marron'];
 const LANGUAGES = [
   { code: 'fr', label: 'Français', flag: 'FR' },
