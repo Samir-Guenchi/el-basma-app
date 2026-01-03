@@ -28,8 +28,12 @@ const PRODUCTION_URL = 'https://web-production-1c70.up.railway.app';
 const API_URL = USE_PRODUCTION ? PRODUCTION_URL : getApiUrl();
 const getImageUrl = (uri: string): string => {
   if (!uri) return '';
-  if (uri.startsWith('http://') || uri.startsWith('https://') || uri.startsWith('file://') || uri.startsWith('content://')) return uri;
-  return `${API_URL}${uri}`;
+  // Data URLs (base64) - use directly without modification
+  if (uri.startsWith('data:')) return uri;
+  // Already full URLs - use directly
+  if (uri.startsWith('http://') || uri.startsWith('https://') || uri.startsWith('file://') || uri.startsWith('content://') || uri.startsWith('blob:')) return uri;
+  // Relative URL - prepend API URL
+  return `${API_URL}${uri.startsWith('/') ? '' : '/'}${uri}`;
 };
 
 interface PublishingStatus {
@@ -111,7 +115,29 @@ export const ProductDetailScreen: React.FC = () => {
     );
   }
 
-  const hasImages = product.images && Array.isArray(product.images) && product.images.length > 0;
+  // Parse images if they're a string (JSON)
+  const productImages: string[] = React.useMemo(() => {
+    if (!product) return [];
+    let images: any = product.images;
+    
+    // If images is a string, try to parse it
+    if (typeof images === 'string') {
+      try {
+        images = JSON.parse(images);
+      } catch {
+        images = images ? [images] : [];
+      }
+    }
+    
+    // Ensure it's an array
+    if (!Array.isArray(images)) {
+      images = images ? [images] : [];
+    }
+    
+    return images as string[];
+  }, [product]);
+
+  const hasImages = productImages.length > 0;
   const stockStatus = product.quantity === 0 ? 'out' : product.quantity <= lowStockThreshold ? 'low' : 'ok';
   const inventory = (product as any).inventory || [];
 
@@ -121,8 +147,16 @@ export const ProductDetailScreen: React.FC = () => {
         {/* Image Gallery */}
         <View style={styles.imageSection}>
           <View style={[styles.imageContainer, { backgroundColor: colors.surface }]}>
-            {hasImages ? (
-              <Image source={{ uri: getImageUrl(product.images[currentImageIndex]) }} style={styles.productImage} resizeMode="cover" />
+            {hasImages && productImages[currentImageIndex] ? (
+              Platform.OS === 'web' ? (
+                <img 
+                  src={getImageUrl(productImages[currentImageIndex])} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  alt={product.name}
+                />
+              ) : (
+                <Image source={{ uri: getImageUrl(productImages[currentImageIndex]) }} style={styles.productImage} resizeMode="cover" />
+              )
             ) : (
               <View style={[styles.imagePlaceholder, { backgroundColor: colors.border }]}>
                 <MaterialCommunityIcons name="image-off-outline" size={48} color={colors.textMuted} />
@@ -136,15 +170,19 @@ export const ProductDetailScreen: React.FC = () => {
           </View>
 
           {/* Image Thumbnails */}
-          {hasImages && product.images.length > 1 && (
+          {hasImages && productImages.length > 1 && (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.thumbScroll} contentContainerStyle={styles.thumbContainer}>
-              {product.images.map((img, idx) => (
+              {productImages.map((img, idx) => (
                 <TouchableOpacity
                   key={idx}
                   style={[styles.thumb, { borderColor: currentImageIndex === idx ? colors.primary : colors.border }]}
                   onPress={() => setCurrentImageIndex(idx)}
                 >
-                  <Image source={{ uri: getImageUrl(img) }} style={styles.thumbImage} />
+                  {Platform.OS === 'web' ? (
+                    <img src={getImageUrl(img)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                  ) : (
+                    <Image source={{ uri: getImageUrl(img) }} style={styles.thumbImage} resizeMode="cover" />
+                  )}
                 </TouchableOpacity>
               ))}
             </ScrollView>

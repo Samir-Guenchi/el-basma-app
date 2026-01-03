@@ -306,6 +306,58 @@ export const uploadApi = {
   },
 
   /**
+   * Upload a single video and optionally create embedding
+   * @param videoUri - Local file URI (file://...) or blob URL on web
+   * @param productId - Optional product ID to associate embedding
+   * @param productName - Optional product name for embedding
+   */
+  uploadVideo: async (videoUri: string, productId?: string, productName?: string) => {
+    const formData = new FormData();
+    
+    // Handle web blob URLs differently
+    if (Platform.OS === 'web' && videoUri.startsWith('blob:')) {
+      try {
+        console.log('Converting video blob URL to file...');
+        const response = await fetch(videoUri);
+        const blob = await response.blob();
+        
+        // Generate a proper filename with extension based on blob type
+        const ext = blob.type.split('/')[1] || 'mp4';
+        const filename = `video_${Date.now()}.${ext}`;
+        
+        console.log('Video blob type:', blob.type, 'Filename:', filename);
+        formData.append('video', blob, filename);
+      } catch (err) {
+        console.error('Error converting video blob:', err);
+        throw err;
+      }
+    } else {
+      // React Native style - get filename from URI
+      const filename = videoUri.split('/').pop()?.split('?')[0] || 'video.mp4';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `video/${match[1]}` : 'video/mp4';
+      
+      formData.append('video', {
+        uri: videoUri,
+        name: filename,
+        type,
+      } as unknown as Blob);
+    }
+    
+    if (productId) formData.append('productId', productId);
+    if (productName) formData.append('productName', productName);
+    
+    console.log('Uploading video to:', `${API_BASE_URL}/upload/video`);
+    
+    const response = await fetch(`${API_BASE_URL}/upload/video`, {
+      method: 'POST',
+      body: formData,
+    });
+    
+    return response.json();
+  },
+
+  /**
    * Get embedding stats
    */
   getEmbeddingStats: async () => {

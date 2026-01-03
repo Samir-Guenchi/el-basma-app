@@ -85,6 +85,7 @@ export const PublishingScreen: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [generatingCaption, setGeneratingCaption] = useState<string | null>(null);
+  const [sharingPlatform, setSharingPlatform] = useState<string | null>(null);
   const [captions, setCaptions] = useState<{ [key: string]: string }>({});
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [captionLanguage, setCaptionLanguage] = useState('fr');
@@ -199,26 +200,37 @@ export const PublishingScreen: React.FC = () => {
     const caption = captions[platform];
     if (!caption || !selectedProduct) return;
 
+    setSharingPlatform(platform);
     try {
       const imageUrl = selectedProduct.images?.[0] ? getImageUrl(selectedProduct.images[0]) : '';
       
-      await Share.share({
+      const result = await Share.share({
         message: caption,
         url: imageUrl,
         title: selectedProduct.name,
       });
       
-      // Mark as published
-      await fetch(`${API_URL}/api/publishing/products/${selectedProduct.id}/mark-published`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform, caption }),
-      });
-      
-      showToast(`Partagé sur ${platform}!`, 'success');
-      fetchData();
-    } catch (error) {
+      // Only mark as published if user actually shared (not dismissed)
+      if (result.action === Share.sharedAction) {
+        await fetch(`${API_URL}/api/publishing/products/${selectedProduct.id}/mark-published`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ platform, caption }),
+        });
+        
+        showToast(`Partagé sur ${platform}!`, 'success');
+        fetchData();
+      } else if (result.action === Share.dismissedAction) {
+        showToast('Partage annulé', 'info');
+      }
+    } catch (error: any) {
       console.error('Share error:', error);
+      // User cancelled or error - don't show error for cancellation
+      if (error.message !== 'User did not share') {
+        showToast('Erreur de partage', 'error');
+      }
+    } finally {
+      setSharingPlatform(null);
     }
   };
 
@@ -474,9 +486,16 @@ export const PublishingScreen: React.FC = () => {
                               <TouchableOpacity
                                 style={[styles.actionBtn, { backgroundColor: platform.color }]}
                                 onPress={() => shareToApp(platform.key)}
+                                disabled={sharingPlatform === platform.key}
                               >
-                                <Ionicons name="share" size={16} color="#FFF" />
-                                <Text style={[styles.actionText, { color: '#FFF' }]}>Publier</Text>
+                                {sharingPlatform === platform.key ? (
+                                  <ActivityIndicator size="small" color="#FFF" />
+                                ) : (
+                                  <>
+                                    <Ionicons name="share" size={16} color="#FFF" />
+                                    <Text style={[styles.actionText, { color: '#FFF' }]}>Publier</Text>
+                                  </>
+                                )}
                               </TouchableOpacity>
                             </View>
                           </View>

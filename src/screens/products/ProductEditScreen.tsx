@@ -58,7 +58,33 @@ const getImageUrl = (uri: string): string => {
   // Handle data URLs
   if (uri.startsWith('data:')) return uri;
   if (uri.startsWith('http://') || uri.startsWith('https://') || uri.startsWith('file://') || uri.startsWith('content://')) return uri;
-  return `${API_URL}${uri}`;
+  return `${API_URL}${uri.startsWith('/') ? '' : '/'}${uri}`;
+};
+
+// Web-compatible image component
+const WebImage = ({ source, style }: { source: { uri: string }, style: any }) => {
+  const [error, setError] = useState(false);
+  
+  if (Platform.OS === 'web') {
+    return (
+      <View style={[style, { overflow: 'hidden', backgroundColor: '#1A1A2E' }]}>
+        {error ? (
+          <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center' }]}>
+            <MaterialCommunityIcons name="image-off-outline" size={24} color="#666" />
+          </View>
+        ) : (
+          <img
+            src={source.uri}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={() => setError(true)}
+            crossOrigin="anonymous"
+          />
+        )}
+      </View>
+    );
+  }
+  
+  return <Image source={source} style={style} />;
 };
 
 export const ProductEditScreen: React.FC = () => {
@@ -126,9 +152,11 @@ export const ProductEditScreen: React.FC = () => {
   const [showAddColor, setShowAddColor] = useState(false);
   const totalQty = inventory.reduce((t, c) => t + c.sizes.reduce((s, sz) => s + sz.qty, 0), 0);
 
-  const [media, setMedia] = useState<{uri: string; type: 'image' | 'video'}[]>(
-    product?.images?.map(uri => ({ uri, type: 'image' as const })) || []
-  );
+  const [media, setMedia] = useState<{uri: string; type: 'image' | 'video'}[]>(() => {
+    const images = (product?.images || []).map(uri => ({ uri, type: 'image' as const }));
+    const videos = ((product as any)?.videos || []).map((uri: string) => ({ uri, type: 'video' as const }));
+    return [...images, ...videos];
+  });
 
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -237,37 +265,58 @@ export const ProductEditScreen: React.FC = () => {
     if (!price || parseFloat(price) <= 0) { showError('Prix requis'); return; }
     setIsUploading(true);
     try {
-      const uploadedUrls: string[] = [];
+      const uploadedImageUrls: string[] = [];
+      const uploadedVideoUrls: string[] = [];
+      
       for (const item of media) {
         // Upload local files (mobile) or blob URLs (web)
         if (item.uri.startsWith('file://') || item.uri.startsWith('content://') || item.uri.startsWith('blob:')) {
           try {
-            console.log('Uploading image:', item.uri.substring(0, 50));
-            const result = await uploadApi.uploadImage(item.uri, undefined, name.trim());
-            console.log('Upload result:', result);
-            if (result.success && result.url) {
-              uploadedUrls.push(result.url);
-            } else if (result.error) {
-              console.error('Upload failed:', result.error);
-              // Skip failed uploads but continue
+            if (item.type === 'video') {
+              // Upload video
+              console.log('Uploading video:', item.uri.substring(0, 50));
+              const result = await uploadApi.uploadVideo(item.uri, undefined, name.trim());
+              console.log('Video upload result:', result);
+              if (result.success && result.url) {
+                uploadedVideoUrls.push(result.url);
+              } else if (result.error) {
+                console.error('Video upload failed:', result.error);
+              }
+            } else {
+              // Upload image
+              console.log('Uploading image:', item.uri.substring(0, 50));
+              const result = await uploadApi.uploadImage(item.uri, undefined, name.trim());
+              console.log('Image upload result:', result);
+              if (result.success && result.url) {
+                uploadedImageUrls.push(result.url);
+              } else if (result.error) {
+                console.error('Image upload failed:', result.error);
+              }
             }
           } catch (err) { 
             console.error('Upload error:', err);
-            // Continue without this image
+            // Continue without this media
           }
         } else {
           // Already a URL (http/https), keep it
-          uploadedUrls.push(item.uri);
+          if (item.type === 'video') {
+            uploadedVideoUrls.push(item.uri);
+          } else {
+            uploadedImageUrls.push(item.uri);
+          }
         }
       }
       
-      console.log('Final uploaded URLs:', uploadedUrls);
+      console.log('Final image URLs:', uploadedImageUrls);
+      console.log('Final video URLs:', uploadedVideoUrls);
       
       const productData = {
         name: name.trim(), description: description.trim(), price: parseFloat(price), category,
         priceWholesale: priceWholesale ? parseFloat(priceWholesale) : undefined,
         minWholesaleQty: parseInt(minWholesaleQty) || 3,
-        images: uploadedUrls, inStock: totalQty > 0, quantity: totalQty,
+        images: uploadedImageUrls,
+        videos: uploadedVideoUrls,
+        inStock: totalQty > 0, quantity: totalQty,
         colors: inventory.map(c => c.color), sizes: [...new Set(inventory.flatMap(c => c.sizes.map(s => s.size)))], inventory,
         publishedOnWebsite,
       };
@@ -281,7 +330,8 @@ export const ProductEditScreen: React.FC = () => {
         await addProduct(productData); 
         showSuccess('Produit ajouté'); 
       }
-      navigation.navigate('Dashboard' as never);
+      // Use goBack instead of navigate to avoid white screen
+      navigation.goBack();
     } catch (err: any) { 
       console.error('Save error:', err); 
       showError(err?.message || 'Erreur de sauvegarde'); 
@@ -318,7 +368,7 @@ export const ProductEditScreen: React.FC = () => {
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.mediaScroll}>
               {media.map((item, index) => (
                 <View key={index} style={styles.mediaItem}>
-                  <Image source={{ uri: getImageUrl(item.uri) }} style={styles.mediaImage} />
+                  <WebImage source={{ uri: getImageUrl(item.uri) }} style={styles.mediaImage} />
                   {item.type === 'video' && (
                     <View style={styles.videoOverlay}>
                       <Ionicons name="play" size={24} color="#FFF" />
@@ -788,7 +838,7 @@ export const ProductEditScreen: React.FC = () => {
                       showSuccess(t('publishing.publishSuccess'));
                     }
                     setShowPublishModal(false);
-                    navigation.navigate('Dashboard' as never);
+                    navigation.goBack();
                   } catch (e) { console.error(e); showError(t('publishing.publishError')); }
                   finally { setIsUploading(false); }
                 }}
