@@ -48,12 +48,14 @@ interface Product {
 }
 
 interface PublishingStatus {
+  website: { published: boolean; caption: string | null; publishedAt: string | null };
   facebook: { published: boolean; caption: string | null; publishedAt: string | null };
   instagram: { published: boolean; caption: string | null; publishedAt: string | null };
   tiktok: { published: boolean; caption: string | null; publishedAt: string | null };
 }
 
 const PLATFORMS = [
+  { key: 'website', label: 'Site Web', icon: 'globe-outline', color: '#3B82F6' },
   { key: 'facebook', label: 'Facebook', icon: 'logo-facebook', color: '#1877F2' },
   { key: 'instagram', label: 'Instagram', icon: 'logo-instagram', color: '#E4405F' },
   { key: 'tiktok', label: 'TikTok', icon: 'logo-tiktok', color: '#000000' },
@@ -225,6 +227,7 @@ export const PublishingScreen: React.FC = () => {
     if (!status) return { count: 0, platforms: [] };
     
     const published: string[] = [];
+    if (status.website?.published) published.push('website');
     if (status.facebook?.published) published.push('facebook');
     if (status.instagram?.published) published.push('instagram');
     if (status.tiktok?.published) published.push('tiktok');
@@ -286,13 +289,13 @@ export const PublishingScreen: React.FC = () => {
             <View style={[styles.statusBadge, { backgroundColor: colors.warning + '20' }]}>
               <Text style={[styles.statusText, { color: colors.warning }]}>Non publié</Text>
             </View>
-          ) : count === 3 ? (
+          ) : count === 4 ? (
             <View style={[styles.statusBadge, { backgroundColor: colors.success + '20' }]}>
               <Text style={[styles.statusText, { color: colors.success }]}>✓ Partout</Text>
             </View>
           ) : (
             <View style={[styles.statusBadge, { backgroundColor: colors.primary + '20' }]}>
-              <Text style={[styles.statusText, { color: colors.primary }]}>{count}/3</Text>
+              <Text style={[styles.statusText, { color: colors.primary }]}>{count}/4</Text>
             </View>
           )}
         </View>
@@ -370,31 +373,67 @@ export const PublishingScreen: React.FC = () => {
                 const isSelected = selectedPlatforms.includes(platform.key);
                 const caption = captions[platform.key];
                 const status = currentStatus?.[platform.key as keyof PublishingStatus];
+                const isWebsite = platform.key === 'website';
+                const isPublishedOnWebsite = selectedProduct && (selectedProduct as any).publishedOnWebsite;
                 
                 return (
                   <View key={platform.key} style={[styles.platformSection, { borderColor: colors.border }]}>
                     <TouchableOpacity
                       style={styles.platformHeader}
-                      onPress={() => togglePlatform(platform.key)}
+                      onPress={() => isWebsite ? null : togglePlatform(platform.key)}
                     >
                       <View style={[styles.platformIcon, { backgroundColor: platform.color + '20' }]}>
                         <Ionicons name={platform.icon as any} size={20} color={platform.color} />
                       </View>
                       <Text style={[styles.platformLabel, { color: colors.text }]}>{platform.label}</Text>
-                      {status?.published && (
+                      {(isWebsite ? isPublishedOnWebsite : status?.published) && (
                         <View style={[styles.publishedTag, { backgroundColor: colors.success + '20' }]}>
                           <Ionicons name="checkmark-circle" size={14} color={colors.success} />
                           <Text style={[styles.publishedText, { color: colors.success }]}>Publié</Text>
                         </View>
                       )}
-                      <Switch
-                        value={isSelected}
-                        onValueChange={() => togglePlatform(platform.key)}
-                        trackColor={{ false: colors.border, true: platform.color }}
-                      />
+                      {isWebsite ? (
+                        <Switch
+                          value={isPublishedOnWebsite}
+                          onValueChange={async (value) => {
+                            if (!selectedProduct) return;
+                            try {
+                              await fetch(`${API_URL}/api/products/${selectedProduct.id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ publishedOnWebsite: value }),
+                              });
+                              showToast(value ? 'Publié sur le site!' : 'Retiré du site', 'success');
+                              // Update local state
+                              setSelectedProduct({ ...selectedProduct, publishedOnWebsite: value } as any);
+                              fetchData();
+                            } catch (error) {
+                              showToast('Erreur', 'error');
+                            }
+                          }}
+                          trackColor={{ false: colors.border, true: platform.color }}
+                        />
+                      ) : (
+                        <Switch
+                          value={isSelected}
+                          onValueChange={() => togglePlatform(platform.key)}
+                          trackColor={{ false: colors.border, true: platform.color }}
+                        />
+                      )}
                     </TouchableOpacity>
                     
-                    {isSelected && (
+                    {isWebsite && (
+                      <View style={[styles.websiteInfo, { backgroundColor: colors.background }]}>
+                        <Ionicons name="information-circle" size={16} color={colors.textSecondary} />
+                        <Text style={[styles.websiteInfoText, { color: colors.textSecondary }]}>
+                          {isPublishedOnWebsite 
+                            ? 'Ce produit est visible sur votre site web' 
+                            : 'Activez pour afficher ce produit sur votre site web'}
+                        </Text>
+                      </View>
+                    )}
+                    
+                    {!isWebsite && isSelected && (
                       <View style={styles.captionArea}>
                         {/* Generate Button */}
                         <TouchableOpacity
@@ -582,6 +621,8 @@ const styles = StyleSheet.create({
   captionActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 10, gap: 10 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, gap: 6 },
   actionText: { fontSize: 13, fontWeight: '600' },
+  websiteInfo: { flexDirection: 'row', alignItems: 'center', padding: 12, margin: 12, marginTop: 0, borderRadius: 10, gap: 8 },
+  websiteInfoText: { flex: 1, fontSize: 13 },
 });
 
 export default PublishingScreen;

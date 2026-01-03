@@ -273,6 +273,31 @@ export const ProductDetailScreen: React.FC = () => {
             </>
           )}
 
+          {/* Website Publishing Status */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('products.websiteStatus') || 'Site Web'}</Text>
+            <View style={[styles.websiteStatusCard, { backgroundColor: (product as any).publishedOnWebsite ? colors.successSoft : colors.surface, borderColor: (product as any).publishedOnWebsite ? colors.success : colors.border }]}>
+              <View style={[styles.websiteStatusIcon, { backgroundColor: (product as any).publishedOnWebsite ? colors.success : colors.textMuted }]}>
+                <Feather name="globe" size={20} color="#FFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.websiteStatusTitle, { color: colors.text }]}>
+                  {(product as any).publishedOnWebsite 
+                    ? (t('products.publishedOnWebsite') || 'Publié sur le site web')
+                    : (t('products.notPublishedOnWebsite') || 'Non publié sur le site web')}
+                </Text>
+                <Text style={[styles.websiteStatusHint, { color: colors.textMuted }]}>
+                  {(product as any).publishedOnWebsite 
+                    ? (t('products.visibleToCustomers') || 'Visible par les clients')
+                    : (t('products.notVisibleToCustomers') || 'Non visible par les clients')}
+                </Text>
+              </View>
+              <View style={[styles.websiteStatusBadge, { backgroundColor: (product as any).publishedOnWebsite ? colors.success : colors.textMuted }]}>
+                <Feather name={(product as any).publishedOnWebsite ? 'check' : 'x'} size={14} color="#FFF" />
+              </View>
+            </View>
+          </View>
+
           {/* Publishing Status */}
           {publishingStatus && (
             <View style={styles.section}>
@@ -409,6 +434,11 @@ const styles = StyleSheet.create({
   tagText: { fontSize: 14, fontWeight: '500' },
 
   // Publishing
+  websiteStatusCard: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 12, borderWidth: 1, gap: 12 },
+  websiteStatusIcon: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  websiteStatusTitle: { fontSize: 15, fontWeight: '600' },
+  websiteStatusHint: { fontSize: 12, marginTop: 2 },
+  websiteStatusBadge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   publishCard: { borderRadius: 12, padding: 14 },
   publishRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
   platformDot: { width: 8, height: 8, borderRadius: 4, marginRight: 10 },

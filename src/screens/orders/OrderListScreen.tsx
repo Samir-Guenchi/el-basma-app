@@ -35,13 +35,18 @@ interface Order {
   id: string;
   customerName: string;
   customerPhone: string;
+  customerCity?: string;
+  customerAddress?: string;
   productName: string;
   productId?: string;
+  selectedColor?: string;
+  selectedSize?: string;
   quantity: number;
   totalPrice: number;
   status: OrderStatus;
   date: string;
   notes: string;
+  platform?: string;
   createdAt?: string;
 }
 
@@ -62,6 +67,7 @@ export const OrderListScreen: React.FC = () => {
     productName: '',
     quantity: '1',
     notes: '',
+    platform: 'app',
   });
   
   const [confirmModal, setConfirmModal] = useState<{
@@ -80,19 +86,24 @@ export const OrderListScreen: React.FC = () => {
       const res = await fetch(`${API_URL}/api/orders`);
       if (res.ok) {
         const data = await res.json();
-        // Transform data to match our interface
+        // Transform data to match our interface with null safety
         const formattedOrders = data.map((o: any) => ({
-          id: o.id,
+          id: o.id || '',
           customerName: o.customerName || 'Client',
           customerPhone: o.customerPhone || '',
+          customerCity: o.customerCity || '',
+          customerAddress: o.customerAddress || '',
           productName: o.productName || '',
-          productId: o.productId,
+          productId: o.productId || '',
+          selectedColor: o.selectedColor || '',
+          selectedSize: o.selectedSize || '',
           quantity: o.quantity || 1,
           totalPrice: o.totalPrice || 0,
           status: o.status || 'pending',
           date: o.createdAt ? o.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
           notes: o.notes || '',
-          createdAt: o.createdAt,
+          platform: o.platform || 'app',
+          createdAt: o.createdAt || '',
         }));
         setOrders(formattedOrders);
       }
@@ -294,6 +305,7 @@ export const OrderListScreen: React.FC = () => {
       quantity: parseInt(newOrder.quantity) || 1,
       totalPrice: (product?.price || 0) * (parseInt(newOrder.quantity) || 1),
       notes: newOrder.notes.trim(),
+      platform: newOrder.platform,
     };
     
     try {
@@ -319,7 +331,7 @@ export const OrderListScreen: React.FC = () => {
           notes: savedOrder.notes || '',
         };
         setOrders(prev => [order, ...prev]);
-        setNewOrder({ customerName: '', customerPhone: '', productName: '', quantity: '1', notes: '' });
+        setNewOrder({ customerName: '', customerPhone: '', productName: '', quantity: '1', notes: '', platform: 'app' });
         setShowNewOrder(false);
         showSuccess(t('orders.orderCreated'));
       } else {
@@ -334,6 +346,27 @@ export const OrderListScreen: React.FC = () => {
   const renderOrderCard = ({ item }: { item: Order }) => {
     const statusStyle = getStatusStyle(item.status);
     
+    // Platform badge configuration
+    const getPlatformBadge = (platform?: string) => {
+      switch (platform) {
+        case 'website':
+          return { emoji: '🌐', label: 'Web', color: '#3B82F6', bg: 'rgba(59, 130, 246, 0.15)' };
+        case 'facebook':
+          return { emoji: '📘', label: 'Facebook', color: '#1877F2', bg: 'rgba(24, 119, 242, 0.15)' };
+        case 'instagram':
+          return { emoji: '📸', label: 'Instagram', color: '#E4405F', bg: 'rgba(228, 64, 95, 0.15)' };
+        case 'tiktok':
+          return { emoji: '🎵', label: 'TikTok', color: '#000000', bg: 'rgba(0, 0, 0, 0.1)' };
+        case 'whatsapp':
+          return { emoji: '💬', label: 'WhatsApp', color: '#25D366', bg: 'rgba(37, 211, 102, 0.15)' };
+        case 'app':
+        default:
+          return { emoji: '🏪', label: 'Boutique', color: '#9B59B6', bg: 'rgba(155, 89, 182, 0.15)' };
+      }
+    };
+    
+    const platformBadge = getPlatformBadge(item.platform);
+    
     return (
     <TouchableOpacity 
       style={[styles.orderCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
@@ -342,16 +375,28 @@ export const OrderListScreen: React.FC = () => {
     >
       <View style={styles.orderHeader}>
         <View style={styles.customerInfo}>
-          <View style={[styles.avatar, { backgroundColor: colors.primarySoft }]}>
-            <Text style={[styles.avatarText, { color: colors.primary }]}>
+          <View style={[styles.avatar, { backgroundColor: platformBadge.bg }]}>
+            <Text style={[styles.avatarText, { color: platformBadge.color }]}>
               {item.customerName.charAt(0).toUpperCase()}
             </Text>
           </View>
           <View style={styles.customerDetails}>
-            <Text style={[styles.customerName, { color: colors.text }]}>{item.customerName}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={[styles.customerName, { color: colors.text }]}>{item.customerName}</Text>
+              <View style={{ backgroundColor: platformBadge.bg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 }}>
+                <Text style={{ color: platformBadge.color, fontSize: 10, fontWeight: '600' }}>{platformBadge.emoji} {platformBadge.label}</Text>
+              </View>
+            </View>
             <View style={styles.phoneRow}>
               <Feather name="phone" size={12} color={colors.textMuted} />
               <Text style={[styles.customerPhone, { color: colors.textMuted }]}>{item.customerPhone}</Text>
+              {item.customerCity ? (
+                <>
+                  <Text style={{ color: colors.textMuted }}> • </Text>
+                  <Feather name="map-pin" size={12} color={colors.textMuted} />
+                  <Text style={[styles.customerPhone, { color: colors.textMuted }]}>{item.customerCity}</Text>
+                </>
+              ) : null}
             </View>
           </View>
         </View>
@@ -365,9 +410,13 @@ export const OrderListScreen: React.FC = () => {
         <View style={[styles.productIcon, { backgroundColor: colors.primarySoft }]}>
           <MaterialCommunityIcons name="hanger" size={18} color={colors.primary} />
         </View>
-        <View style={styles.productInfo}>>
+        <View style={styles.productInfo}>
           <Text style={[styles.productName, { color: colors.text }]} numberOfLines={1}>{item.productName}</Text>
-          <Text style={[styles.productQty, { color: colors.textMuted }]}>{t('orders.quantity')}: {item.quantity}</Text>
+          <Text style={[styles.productQty, { color: colors.textMuted }]}>
+            {t('orders.quantity')}: {item.quantity}
+            {item.selectedColor ? ` • ${item.selectedColor}` : ''}
+            {item.selectedSize ? ` • ${item.selectedSize}` : ''}
+          </Text>
         </View>
         <Text style={[styles.price, { color: colors.primary }]}>{formatPrice(item.totalPrice)}</Text>
       </View>
@@ -682,6 +731,35 @@ export const OrderListScreen: React.FC = () => {
                   onChangeText={(text) => setNewOrder({ ...newOrder, notes: text })}
                 />
               </View>
+
+              <Text style={[styles.inputLabel, { color: colors.textSec }]}>Source de la commande</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                {[
+                  { key: 'app', emoji: '🏪', label: 'Boutique' },
+                  { key: 'facebook', emoji: '📘', label: 'Facebook' },
+                  { key: 'instagram', emoji: '📸', label: 'Instagram' },
+                  { key: 'tiktok', emoji: '🎵', label: 'TikTok' },
+                  { key: 'whatsapp', emoji: '💬', label: 'WhatsApp' },
+                  { key: 'website', emoji: '🌐', label: 'Site Web' },
+                ].map((p) => (
+                  <TouchableOpacity
+                    key={p.key}
+                    style={[
+                      styles.platformOption,
+                      { 
+                        backgroundColor: newOrder.platform === p.key ? colors.primary : colors.surfaceAlt, 
+                        borderColor: newOrder.platform === p.key ? colors.primary : colors.border 
+                      }
+                    ]}
+                    onPress={() => setNewOrder({ ...newOrder, platform: p.key })}
+                  >
+                    <Text style={{ fontSize: 16 }}>{p.emoji}</Text>
+                    <Text style={[styles.platformOptionText, { color: newOrder.platform === p.key ? '#FFF' : colors.text }]}>
+                      {p.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
               
               <View style={{ height: 20 }} />
             </ScrollView>
@@ -863,6 +941,8 @@ const styles = StyleSheet.create({
   productOption: { paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, borderWidth: 1, marginRight: 10, minWidth: 140 },
   productOptionText: { fontSize: 13, fontWeight: '500' },
   productOptionPrice: { fontSize: 12, marginTop: 4 },
+  platformOption: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, borderWidth: 1, marginRight: 8, gap: 6 },
+  platformOptionText: { fontSize: 13, fontWeight: '500' },
   qtyWrapper: { flexDirection: 'row', alignItems: 'center', borderRadius: 12, borderWidth: 1, padding: 6 },
   qtyBtn: { width: 38, height: 38, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   qtyInput: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: '600' },

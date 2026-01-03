@@ -49,6 +49,7 @@ export const DeliveryScreen: React.FC = () => {
   const [editingItem, setEditingItem] = useState<DeliveryPrice | null>(null);
   const [formData, setFormData] = useState({ city: '', home: '', office: '', agencies: '' });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const isDark = themeMode === 'dark';
   const colors = {
@@ -143,54 +144,79 @@ export const DeliveryScreen: React.FC = () => {
 
       if (editingItem) {
         // Update existing
-        await fetch(`${API_URL}/api/delivery/${encodeURIComponent(editingItem.city)}`, {
+        const url = `${API_URL}/api/delivery/${encodeURIComponent(editingItem.city)}`;
+        console.log('Updating:', url, payload);
+        const res = await fetch(url, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        showSuccess(t('delivery.cityUpdated'));
+        const data = await res.json();
+        console.log('Update response:', res.status, data);
+        if (res.ok && data.success) {
+          showSuccess(t('delivery.cityUpdated'));
+          // Update prices - useEffect will handle filteredPrices
+          setPrices(prev => prev.map(p => 
+            p.city === editingItem.city ? { ...p, ...payload } : p
+          ));
+        } else {
+          showError(data.error || t('common.error'));
+        }
       } else {
         // Add new
-        await fetch(`${API_URL}/api/delivery`, {
+        const res = await fetch(`${API_URL}/api/delivery`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        showSuccess(t('delivery.cityAdded'));
+        const data = await res.json();
+        console.log('Add response:', res.status, data);
+        if (res.ok && data.success) {
+          showSuccess(t('delivery.cityAdded'));
+          // Add to prices - useEffect will handle filteredPrices
+          const newItem = { ...payload, id: Date.now() };
+          setPrices(prev => [...prev, newItem]);
+        } else {
+          showError(data.error || t('common.error'));
+        }
       }
 
       setShowModal(false);
-      fetchPrices();
     } catch (error) {
+      console.error('Save error:', error);
       showError(t('common.error'));
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = (item: DeliveryPrice) => {
-    Alert.alert(
-      t('common.delete'),
-      `${t('delivery.deleteCity')} ${item.city}?`,
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await fetch(`${API_URL}/api/delivery/${encodeURIComponent(item.city)}`, {
-                method: 'DELETE',
-              });
-              showSuccess(t('delivery.cityDeleted'));
-              fetchPrices();
-            } catch (error) {
-              showError(t('common.error'));
-            }
-          },
-        },
-      ]
-    );
+  const handleDelete = async (item: DeliveryPrice) => {
+    console.log('=== DELETE CLICKED ===', item.city);
+    
+    // Direct delete without Alert for testing
+    setDeleting(item.city);
+    try {
+      const url = `${API_URL}/api/delivery/${encodeURIComponent(item.city)}`;
+      console.log('DELETE URL:', url);
+      
+      const res = await fetch(url, { method: 'DELETE' });
+      console.log('Response status:', res.status);
+      
+      const data = await res.json();
+      console.log('Response data:', JSON.stringify(data));
+      
+      if (res.ok && data.success) {
+        showSuccess(`${item.city} supprimé`);
+        setPrices(prev => prev.filter(p => p.city !== item.city));
+      } else {
+        showError(data.error || 'Erreur de suppression');
+      }
+    } catch (error: any) {
+      console.error('DELETE ERROR:', error.message);
+      showError('Erreur: ' + error.message);
+    } finally {
+      setDeleting(null);
+    }
   };
 
   // Calculate stats
@@ -305,14 +331,16 @@ export const DeliveryScreen: React.FC = () => {
           </View>
         ) : (
           filteredPrices.map((item, index) => (
-            <TouchableOpacity 
-              key={index} 
+            <View 
+              key={item.city + index} 
               style={[styles.priceCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-              onPress={() => openEditModal(item)}
-              activeOpacity={0.7}
             >
               <View style={styles.priceHeader}>
-                <View style={styles.cityInfo}>
+                <TouchableOpacity 
+                  style={styles.cityInfo}
+                  onPress={() => openEditModal(item)}
+                  activeOpacity={0.7}
+                >
                   <View style={[
                     styles.cityIcon, 
                     { backgroundColor: item.home === 0 ? colors.successSoft : colors.primarySoft }
@@ -324,7 +352,7 @@ export const DeliveryScreen: React.FC = () => {
                     )}
                   </View>
                   <Text style={[styles.cityName, { color: colors.text }]}>{item.city}</Text>
-                </View>
+                </TouchableOpacity>
                 <View style={styles.cardActions}>
                   {item.home === 0 && (
                     <View style={[styles.freeBadge, { backgroundColor: colors.successSoft }]}>
@@ -336,6 +364,17 @@ export const DeliveryScreen: React.FC = () => {
                     onPress={() => openEditModal(item)}
                   >
                     <Feather name="edit-2" size={14} color={colors.textSec} />
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.deleteIconBtn, { backgroundColor: colors.dangerSoft }]}
+                    onPress={() => handleDelete(item)}
+                    disabled={deleting === item.city}
+                  >
+                    {deleting === item.city ? (
+                      <ActivityIndicator size="small" color={colors.danger} />
+                    ) : (
+                      <Feather name="trash-2" size={14} color={colors.danger} />
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
@@ -362,7 +401,7 @@ export const DeliveryScreen: React.FC = () => {
                   <Text style={[styles.agencies, { color: colors.textSec }]}>{item.agencies}</Text>
                 </View>
               )}
-            </TouchableOpacity>
+            </View>
           ))
         )}
 
@@ -572,6 +611,7 @@ const styles = StyleSheet.create({
   freeBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
   freeBadgeText: { fontSize: 11, fontWeight: '700' },
   editBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  deleteIconBtn: { width: 32, height: 32, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   priceRow: { flexDirection: 'row', alignItems: 'center', borderRadius: 10, padding: 12 },
   priceItem: { flex: 1, alignItems: 'center', gap: 4 },
   priceLabel: { fontSize: 11 },

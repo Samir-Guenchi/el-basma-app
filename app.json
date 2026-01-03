@@ -45,8 +45,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "bbaa9a73-d8ec-4ee0-816c-c2505f34613b"
+        "projectId": "5ce6bc34-a246-4812-bbf0-a9264ffa1ad0"
       }
-    }
+    },
+    "owner": "samirguenchi13"
   }
 }

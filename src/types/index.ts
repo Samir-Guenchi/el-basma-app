@@ -12,6 +12,7 @@ export interface Product {
   quantity: number;
   colors: string[];
   sizes: string[];
+  publishedOnWebsite?: boolean; // Whether product is visible on the website
   createdAt: string;
   updatedAt: string;
 }

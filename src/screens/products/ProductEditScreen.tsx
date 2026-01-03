@@ -53,6 +53,10 @@ const PRODUCTION_URL = 'https://web-production-1c70.up.railway.app';
 const API_URL = USE_PRODUCTION ? PRODUCTION_URL : getApiUrl();
 const getImageUrl = (uri: string): string => {
   if (!uri) return '';
+  // Handle blob URLs from web image picker
+  if (uri.startsWith('blob:')) return uri;
+  // Handle data URLs
+  if (uri.startsWith('data:')) return uri;
   if (uri.startsWith('http://') || uri.startsWith('https://') || uri.startsWith('file://') || uri.startsWith('content://')) return uri;
   return `${API_URL}${uri}`;
 };
@@ -104,6 +108,7 @@ export const ProductEditScreen: React.FC = () => {
   const [priceWholesale, setPriceWholesale] = useState((product as any)?.priceWholesale?.toString() || '');
   const [minWholesaleQty, setMinWholesaleQty] = useState((product as any)?.minWholesaleQty?.toString() || '3');
   const [category, setCategory] = useState<ProductCategory>(product?.category || 'djellaba');
+  const [publishedOnWebsite, setPublishedOnWebsite] = useState<boolean>((product as any)?.publishedOnWebsite || false);
 
   const initInventory = (): ColorStock[] => {
     if ((product as any)?.inventory) return (product as any).inventory;
@@ -234,24 +239,53 @@ export const ProductEditScreen: React.FC = () => {
     try {
       const uploadedUrls: string[] = [];
       for (const item of media) {
-        if (item.uri.startsWith('file://') || item.uri.startsWith('content://')) {
+        // Upload local files (mobile) or blob URLs (web)
+        if (item.uri.startsWith('file://') || item.uri.startsWith('content://') || item.uri.startsWith('blob:')) {
           try {
+            console.log('Uploading image:', item.uri.substring(0, 50));
             const result = await uploadApi.uploadImage(item.uri, undefined, name.trim());
-            uploadedUrls.push(result.success && result.url ? result.url : item.uri);
-          } catch { uploadedUrls.push(item.uri); }
-        } else uploadedUrls.push(item.uri);
+            console.log('Upload result:', result);
+            if (result.success && result.url) {
+              uploadedUrls.push(result.url);
+            } else if (result.error) {
+              console.error('Upload failed:', result.error);
+              // Skip failed uploads but continue
+            }
+          } catch (err) { 
+            console.error('Upload error:', err);
+            // Continue without this image
+          }
+        } else {
+          // Already a URL (http/https), keep it
+          uploadedUrls.push(item.uri);
+        }
       }
+      
+      console.log('Final uploaded URLs:', uploadedUrls);
+      
       const productData = {
         name: name.trim(), description: description.trim(), price: parseFloat(price), category,
         priceWholesale: priceWholesale ? parseFloat(priceWholesale) : undefined,
         minWholesaleQty: parseInt(minWholesaleQty) || 3,
         images: uploadedUrls, inStock: totalQty > 0, quantity: totalQty,
         colors: inventory.map(c => c.color), sizes: [...new Set(inventory.flatMap(c => c.sizes.map(s => s.size)))], inventory,
+        publishedOnWebsite,
       };
-      if (isEditing && product) { await updateProduct(product.id, productData); showSuccess('Produit modifié'); }
-      else { await addProduct(productData); showSuccess('Produit ajouté'); }
+      
+      console.log('Saving product:', productData.name);
+      
+      if (isEditing && product) { 
+        await updateProduct(product.id, productData); 
+        showSuccess('Produit modifié'); 
+      } else { 
+        await addProduct(productData); 
+        showSuccess('Produit ajouté'); 
+      }
       navigation.navigate('Dashboard' as never);
-    } catch { showError('Erreur de sauvegarde'); }
+    } catch (err: any) { 
+      console.error('Save error:', err); 
+      showError(err?.message || 'Erreur de sauvegarde'); 
+    }
     finally { setIsUploading(false); }
   };
 
@@ -370,6 +404,30 @@ export const ProductEditScreen: React.FC = () => {
                 {t('products.wholesale')}: {parseInt(minWholesaleQty) || 3}+ {t('products.piecesOrMore')}
               </Text>
             )}
+          </View>
+
+          {/* Publish on Website Toggle */}
+          <View style={styles.section}>
+            <TouchableOpacity 
+              style={[styles.websiteToggle, { backgroundColor: publishedOnWebsite ? colors.successSoft : colors.surface, borderColor: publishedOnWebsite ? colors.success : colors.border }]}
+              onPress={() => setPublishedOnWebsite(!publishedOnWebsite)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.websiteToggleIcon, { backgroundColor: publishedOnWebsite ? colors.success : colors.textMuted }]}>
+                <Feather name="globe" size={18} color="#FFF" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.websiteToggleTitle, { color: colors.text }]}>{t('products.publishOnWebsite') || 'Publier sur le site web'}</Text>
+                <Text style={[styles.websiteToggleHint, { color: colors.textMuted }]}>
+                  {publishedOnWebsite 
+                    ? (t('products.visibleOnWebsite') || 'Visible sur le site web') 
+                    : (t('products.notVisibleOnWebsite') || 'Non visible sur le site web')}
+                </Text>
+              </View>
+              <View style={[styles.websiteToggleSwitch, { backgroundColor: publishedOnWebsite ? colors.success : colors.border }]}>
+                <View style={[styles.websiteToggleDot, { transform: [{ translateX: publishedOnWebsite ? 18 : 2 }] }]} />
+              </View>
+            </TouchableOpacity>
           </View>
 
           {/* Category */}
@@ -773,6 +831,14 @@ const styles = StyleSheet.create({
   minQtyBtn: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   minQtyInput: { width: 40, height: 36, borderRadius: 8, borderWidth: 1, textAlign: 'center', fontWeight: '600', fontSize: 14 },
   wholesaleHint: { fontSize: 12, marginTop: 8, fontStyle: 'italic' },
+
+  // Website Toggle
+  websiteToggle: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 12, borderWidth: 1, gap: 12 },
+  websiteToggleIcon: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  websiteToggleTitle: { fontSize: 15, fontWeight: '600' },
+  websiteToggleHint: { fontSize: 12, marginTop: 2 },
+  websiteToggleSwitch: { width: 44, height: 24, borderRadius: 12, justifyContent: 'center' },
+  websiteToggleDot: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFF' },
 
   // Media
   mediaScroll: { marginTop: 4 },

@@ -98,6 +98,7 @@ export const ProductListScreen: React.FC = () => {
   const renderProduct = ({ item }: { item: Product }) => {
     const hasImages = item.images && Array.isArray(item.images) && item.images.length > 0;
     const imageUri = hasImages ? getImageUrl(item.images[0]) : null;
+    const imageCount = hasImages ? item.images.length : 0;
     
     return (
     <View style={[styles.productCard, { backgroundColor: colors.surface }]}>
@@ -116,6 +117,12 @@ export const ProductListScreen: React.FC = () => {
           {!item.inStock && (
             <View style={styles.soldOutBadge}>
               <Text style={styles.soldOutText}>{t('dashboard.outOfStock')}</Text>
+            </View>
+          )}
+          {imageCount > 1 && (
+            <View style={styles.imageCountBadge}>
+              <Feather name="image" size={10} color="#FFF" />
+              <Text style={styles.imageCountText}>{imageCount}</Text>
             </View>
           )}
         </View>
@@ -390,6 +397,23 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   soldOutText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  imageCountBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+  imageCountText: {
     color: '#FFF',
     fontSize: 10,
     fontWeight: '600',

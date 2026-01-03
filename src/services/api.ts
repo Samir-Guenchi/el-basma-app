@@ -191,34 +191,52 @@ export const chatApi = {
 export const uploadApi = {
   /**
    * Upload a single image and optionally create embedding
-   * @param imageUri - Local file URI (file://...)
+   * @param imageUri - Local file URI (file://...) or blob URL on web
    * @param productId - Optional product ID to associate embedding
    * @param productName - Optional product name for embedding
    */
   uploadImage: async (imageUri: string, productId?: string, productName?: string) => {
     const formData = new FormData();
     
-    // Get filename from URI
-    const filename = imageUri.split('/').pop() || 'image.jpg';
-    const match = /\.(\w+)$/.exec(filename);
-    const type = match ? `image/${match[1]}` : 'image/jpeg';
-    
-    // Append image file
-    formData.append('image', {
-      uri: imageUri,
-      name: filename,
-      type,
-    } as unknown as Blob);
+    // Handle web blob URLs differently
+    if (Platform.OS === 'web' && imageUri.startsWith('blob:')) {
+      try {
+        console.log('Converting blob URL to file...');
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        
+        // Generate a proper filename with extension based on blob type
+        const ext = blob.type.split('/')[1] || 'jpg';
+        const filename = `image_${Date.now()}.${ext === 'jpeg' ? 'jpg' : ext}`;
+        
+        console.log('Blob type:', blob.type, 'Filename:', filename);
+        formData.append('image', blob, filename);
+      } catch (err) {
+        console.error('Error converting blob:', err);
+        throw err;
+      }
+    } else {
+      // React Native style - get filename from URI
+      const filename = imageUri.split('/').pop()?.split('?')[0] || 'image.jpg';
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+      
+      formData.append('image', {
+        uri: imageUri,
+        name: filename,
+        type,
+      } as unknown as Blob);
+    }
     
     if (productId) formData.append('productId', productId);
     if (productName) formData.append('productName', productName);
     
+    console.log('Uploading to:', `${API_BASE_URL}/upload/image`);
+    
     const response = await fetch(`${API_BASE_URL}/upload/image`, {
       method: 'POST',
       body: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      // Don't set Content-Type header - let fetch set it automatically with boundary
     });
     
     return response.json();
@@ -248,9 +266,7 @@ export const uploadApi = {
     const response = await fetch(`${API_BASE_URL}/upload/images`, {
       method: 'POST',
       body: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      // Don't set Content-Type header - let fetch set it automatically with boundary
     });
     
     return response.json();
@@ -275,9 +291,7 @@ export const uploadApi = {
     const response = await fetch(`${API_BASE_URL}/upload/product/${productId}/image`, {
       method: 'POST',
       body: formData,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      // Don't set Content-Type header - let fetch set it automatically with boundary
     });
     
     return response.json();
