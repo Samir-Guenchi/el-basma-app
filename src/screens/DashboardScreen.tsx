@@ -42,7 +42,7 @@ const getImageUrl = (uri: string): string => {
 export const DashboardScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const { t } = useTranslation();
-  const { products, updateProduct, deleteProduct, fetchProducts } = useProductStore();
+  const { products, deleteProduct, fetchProducts } = useProductStore();
   const { themeMode, lowStockThreshold, getAllCategories, fetchSettings, fetchCategories } = useSettingsStore();
   const isDark = themeMode === 'dark';
   const categories = getAllCategories();
@@ -78,17 +78,17 @@ export const DashboardScreen: React.FC = () => {
     bg: isDark ? '#121212' : '#F5F5F5',
     surface: isDark ? '#1E1E1E' : '#FFFFFF',
     text: isDark ? '#FFFFFF' : '#1A1A1A',
-    textSec: isDark ? '#A0A0A0' : '#666666',
-    textMuted: isDark ? '#707070' : '#999999',
-    border: isDark ? '#2A2A2A' : '#E8E8E8',
-    primary: '#D4436A',
-    primarySoft: isDark ? 'rgba(212, 67, 106, 0.15)' : 'rgba(212, 67, 106, 0.08)',
-    success: '#2ECC71',
-    successSoft: isDark ? 'rgba(46, 204, 113, 0.15)' : 'rgba(46, 204, 113, 0.08)',
-    warning: '#F39C12',
-    warningSoft: isDark ? 'rgba(243, 156, 18, 0.15)' : 'rgba(243, 156, 18, 0.08)',
-    danger: '#E74C3C',
-    accent: '#9B59B6',
+    textSec: isDark ? '#B0B0B0' : '#555555',
+    textMuted: isDark ? '#808080' : '#666666',
+    border: isDark ? '#2A2A2A' : '#E0E0E0',
+    primary: '#C13B5E',
+    primarySoft: isDark ? 'rgba(193, 59, 94, 0.15)' : 'rgba(193, 59, 94, 0.1)',
+    success: '#1E8449',
+    successSoft: isDark ? 'rgba(30, 132, 73, 0.15)' : 'rgba(30, 132, 73, 0.1)',
+    warning: '#B7770A',
+    warningSoft: isDark ? 'rgba(183, 119, 10, 0.15)' : 'rgba(183, 119, 10, 0.1)',
+    danger: '#C0392B',
+    accent: '#7D3C98',
   };
 
   const formatPrice = (price: number) => price.toLocaleString('fr-DZ') + ' DA';
@@ -103,11 +103,6 @@ export const DashboardScreen: React.FC = () => {
         { text: t('common.delete'), style: 'destructive', onPress: doDelete },
       ]);
     }
-  };
-
-  const handleQty = (product: Product, delta: number) => {
-    const newQty = Math.max(0, product.quantity + delta);
-    updateProduct(product.id, { quantity: newQty, inStock: newQty > 0 });
   };
 
   return (
@@ -131,32 +126,43 @@ export const DashboardScreen: React.FC = () => {
           <TouchableOpacity 
             style={[styles.notifBtn, { backgroundColor: colors.primarySoft }]}
             onPress={() => navigation.navigate('Orders')}
+            accessibilityLabel={t('orders.title')}
+            accessibilityRole="button"
           >
-            <Ionicons name="notifications-outline" size={22} color={colors.primary} />
+            <Ionicons name="notifications-outline" size={24} color={colors.primary} />
           </TouchableOpacity>
         </View>
 
         {/* Stats Row */}
         <View style={styles.statsContainer}>
-          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+          <View 
+            style={[styles.statCard, { backgroundColor: colors.surface }]}
+            accessibilityLabel={`${totalProducts} ${t('dashboard.products')}`}
+          >
             <View style={[styles.statIcon, { backgroundColor: colors.primarySoft }]}>
-              <MaterialCommunityIcons name="hanger" size={20} color={colors.primary} />
+              <MaterialCommunityIcons name="hanger" size={22} color={colors.primary} />
             </View>
             <Text style={[styles.statValue, { color: colors.text }]}>{totalProducts}</Text>
             <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t('dashboard.products')}</Text>
           </View>
 
-          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+          <View 
+            style={[styles.statCard, { backgroundColor: colors.surface }]}
+            accessibilityLabel={`${inStockCount} ${t('dashboard.inStock')}`}
+          >
             <View style={[styles.statIcon, { backgroundColor: colors.successSoft }]}>
-              <Feather name="check-circle" size={20} color={colors.success} />
+              <Feather name="check-circle" size={22} color={colors.success} />
             </View>
             <Text style={[styles.statValue, { color: colors.success }]}>{inStockCount}</Text>
             <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t('dashboard.inStock')}</Text>
           </View>
 
-          <View style={[styles.statCard, { backgroundColor: colors.surface }]}>
+          <View 
+            style={[styles.statCard, { backgroundColor: colors.surface }]}
+            accessibilityLabel={`${lowStockCount} ${t('dashboard.lowStock')}`}
+          >
             <View style={[styles.statIcon, { backgroundColor: colors.warningSoft }]}>
-              <Feather name="alert-triangle" size={20} color={colors.warning} />
+              <Feather name="alert-triangle" size={22} color={colors.warning} />
             </View>
             <Text style={[styles.statValue, { color: colors.warning }]}>{lowStockCount}</Text>
             <Text style={[styles.statLabel, { color: colors.textMuted }]}>{t('dashboard.lowStock')}</Text>
@@ -201,7 +207,12 @@ export const DashboardScreen: React.FC = () => {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>{t('dashboard.recentProducts')}</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Home', { screen: 'ProductList' })}>
+            <TouchableOpacity 
+              style={styles.seeAllBtn}
+              onPress={() => navigation.navigate('Home', { screen: 'ProductList' })}
+              accessibilityLabel={t('dashboard.seeAll')}
+              accessibilityRole="button"
+            >
               <Text style={[styles.seeAll, { color: colors.primary }]}>{t('dashboard.seeAll')}</Text>
             </TouchableOpacity>
           </View>
@@ -233,21 +244,12 @@ export const DashboardScreen: React.FC = () => {
                   <Text style={[styles.productName, { color: colors.text }]} numberOfLines={1}>{product.name}</Text>
                   <Text style={[styles.productCat, { color: colors.textMuted }]}>{product.category}</Text>
                   <Text style={[styles.productPrice, { color: colors.primary }]}>{formatPrice(product.price)}</Text>
-                </View>
-
-                {/* Quantity */}
-                <View style={[styles.qtyRow, { borderTopColor: colors.border }]}>
-                  <TouchableOpacity style={[styles.qtyBtn, { backgroundColor: colors.warningSoft }]} onPress={() => handleQty(product, -1)}>
-                    <Feather name="minus" size={16} color={colors.warning} />
-                  </TouchableOpacity>
-                  <View style={[styles.qtyBox, { backgroundColor: product.quantity > lowStockThreshold ? colors.successSoft : colors.warningSoft }]}>
-                    <Text style={[styles.qtyText, { color: product.quantity > lowStockThreshold ? colors.success : colors.warning }]}>
-                      {product.quantity}
+                  {/* Stock badge (read-only) */}
+                  <View style={[styles.stockBadge, { backgroundColor: product.quantity > lowStockThreshold ? colors.successSoft : colors.warningSoft }]}>
+                    <Text style={[styles.stockText, { color: product.quantity > lowStockThreshold ? colors.success : colors.warning }]}>
+                      {product.quantity} {t('products.units')}
                     </Text>
                   </View>
-                  <TouchableOpacity style={[styles.qtyBtn, { backgroundColor: colors.successSoft }]} onPress={() => handleQty(product, 1)}>
-                    <Feather name="plus" size={16} color={colors.success} />
-                  </TouchableOpacity>
                 </View>
 
                 {/* Actions */}
@@ -335,8 +337,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   notifBtn: {
-    width: 44,
-    height: 44,
+    width: 48,
+    height: 48,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -364,12 +366,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statValue: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '700',
   },
   statLabel: {
-    fontSize: 11,
-    marginTop: 2,
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: '500',
   },
 
   // Value Card
@@ -413,9 +416,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 12,
   },
+  seeAllBtn: {
+    minHeight: 48,
+    minWidth: 48,
+    paddingHorizontal: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   seeAll: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
 
   // Categories
@@ -424,29 +434,30 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   catCard: {
-    width: 100,
+    width: 110,
+    minHeight: 100,
     padding: 14,
     borderRadius: 14,
     alignItems: 'center',
     borderWidth: 1,
   },
   catIconBox: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
   },
   catName: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     textTransform: 'capitalize',
     textAlign: 'center',
   },
   catCount: {
-    fontSize: 10,
-    marginTop: 2,
+    fontSize: 11,
+    marginTop: 4,
   },
 
   // Products
@@ -506,48 +517,32 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 4,
   },
-
-  // Quantity
-  qtyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderTopWidth: 1,
-    gap: 8,
-  },
-  qtyBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qtyBox: {
-    paddingHorizontal: 14,
+  stockBadge: {
+    marginTop: 6,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
-    minWidth: 40,
-    alignItems: 'center',
+    borderRadius: 6,
+    alignSelf: 'flex-start',
   },
-  qtyText: {
-    fontSize: 13,
-    fontWeight: '700',
+  stockText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
 
   // Card Actions
   cardActions: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
     paddingHorizontal: 10,
     paddingBottom: 10,
   },
   actionBtn: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
+    minHeight: 48,
+    paddingVertical: 12,
+    borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
   },
 
   // Quick Actions

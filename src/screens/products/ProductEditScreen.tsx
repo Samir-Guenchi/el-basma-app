@@ -122,6 +122,7 @@ export const ProductEditScreen: React.FC = () => {
     success: '#2ECC71',
     successSoft: isDark ? 'rgba(46, 204, 113, 0.15)' : 'rgba(46, 204, 113, 0.08)',
     warning: '#F39C12',
+    warningSoft: isDark ? 'rgba(243, 156, 18, 0.15)' : 'rgba(243, 156, 18, 0.08)',
     danger: '#E74C3C',
     accent: '#9B59B6',
     accentSoft: isDark ? 'rgba(155, 89, 182, 0.15)' : 'rgba(155, 89, 182, 0.08)',
@@ -168,6 +169,29 @@ export const ProductEditScreen: React.FC = () => {
   const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
   const [customInstruction, setCustomInstruction] = useState('');
   const [publishPlatforms, setPublishPlatforms] = useState({ facebook: false, instagram: false, tiktok: false });
+  const [customSizes, setCustomSizes] = useState<string[]>([]);
+  const [newSizeInput, setNewSizeInput] = useState('');
+  const [showAddSize, setShowAddSize] = useState<number | null>(null); // colorIndex or null
+
+  // Get all available sizes (default + custom)
+  const getAllSizes = () => [...SIZES, ...customSizes];
+
+  // Add custom size
+  const addCustomSize = (size: string, colorIdx: number) => {
+    const trimmed = size.trim();
+    if (!trimmed) return;
+    if (!customSizes.includes(trimmed) && !SIZES.includes(trimmed)) {
+      setCustomSizes([...customSizes, trimmed]);
+    }
+    // Also add to the color's sizes
+    const inv = [...inventory];
+    if (!inv[colorIdx].sizes.find(s => s.size === trimmed)) {
+      inv[colorIdx].sizes.push({ size: trimmed, qty: 0 });
+    }
+    setInventory(inv);
+    setNewSizeInput('');
+    setShowAddSize(null);
+  };
 
   // Inventory functions
   const addColor = (colorName: string) => {
@@ -263,6 +287,15 @@ export const ProductEditScreen: React.FC = () => {
   const handleSubmit = async () => {
     if (!name.trim()) { showError('Nom requis'); return; }
     if (!price || parseFloat(price) <= 0) { showError('Prix requis'); return; }
+    
+    // Check if there's at least one image when video exists
+    const hasVideo = media.some(m => m.type === 'video');
+    const hasImage = media.some(m => m.type === 'image');
+    if (hasVideo && !hasImage) {
+      showError('Ajoutez au moins une image avec la vidéo');
+      return;
+    }
+    
     setIsUploading(true);
     try {
       const uploadedImageUrls: string[] = [];
@@ -384,6 +417,14 @@ export const ProductEditScreen: React.FC = () => {
                 <Text style={[styles.addMediaText, { color: colors.textMuted }]}>{t('products.addMedia')}</Text>
               </TouchableOpacity>
             </ScrollView>
+            {media.some(m => m.type === 'video') && !media.some(m => m.type === 'image') && (
+              <View style={[styles.mediaHint, { backgroundColor: colors.warningSoft }]}>
+                <Feather name="alert-circle" size={14} color={colors.warning} />
+                <Text style={[styles.mediaHintText, { color: colors.warning }]}>
+                  Ajoutez au moins une image pour l'affichage de la carte
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Name */}
@@ -525,7 +566,7 @@ export const ProductEditScreen: React.FC = () => {
                 </View>
 
                 <View style={styles.sizesRow}>
-                  {SIZES.map(size => {
+                  {getAllSizes().map(size => {
                     const hasSize = colorItem.sizes.find(s => s.size === size);
                     return (
                       <TouchableOpacity
@@ -537,6 +578,39 @@ export const ProductEditScreen: React.FC = () => {
                       </TouchableOpacity>
                     );
                   })}
+                  {/* Add custom size button */}
+                  {showAddSize === cIdx ? (
+                    <View style={[styles.addSizeForm, { backgroundColor: colors.bg, borderColor: colors.border }]}>
+                      <TextInput
+                        style={[styles.addSizeInput, { color: colors.text, borderColor: colors.border }]}
+                        value={newSizeInput}
+                        onChangeText={setNewSizeInput}
+                        placeholder="Ex: 52"
+                        placeholderTextColor={colors.textMuted}
+                        autoFocus
+                        onSubmitEditing={() => addCustomSize(newSizeInput, cIdx)}
+                      />
+                      <TouchableOpacity 
+                        style={[styles.addSizeBtn, { backgroundColor: colors.success }]} 
+                        onPress={() => addCustomSize(newSizeInput, cIdx)}
+                      >
+                        <Feather name="check" size={14} color="#FFF" />
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={[styles.addSizeBtn, { backgroundColor: colors.border }]} 
+                        onPress={() => { setShowAddSize(null); setNewSizeInput(''); }}
+                      >
+                        <Feather name="x" size={14} color={colors.text} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={[styles.sizeChip, { backgroundColor: colors.accentSoft, borderColor: colors.accent, borderStyle: 'dashed' }]}
+                      onPress={() => setShowAddSize(cIdx)}
+                    >
+                      <Feather name="plus" size={12} color={colors.accent} />
+                    </TouchableOpacity>
+                  )}
                 </View>
 
                 {colorItem.sizes.length > 0 && (
@@ -898,6 +972,8 @@ const styles = StyleSheet.create({
   removeMedia: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: '#E74C3C', alignItems: 'center', justifyContent: 'center' },
   addMediaBtn: { width: 90, height: 90, borderRadius: 12, borderWidth: 1.5, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
   addMediaText: { fontSize: 11, marginTop: 4 },
+  mediaHint: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, borderRadius: 8, marginTop: 10 },
+  mediaHintText: { fontSize: 12, flex: 1 },
 
   // Category
   addCatBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, gap: 4 },
@@ -913,9 +989,12 @@ const styles = StyleSheet.create({
   colorName: { fontSize: 15, fontWeight: '600' },
   colorActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   colorQty: { fontSize: 13 },
-  sizesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
+  sizesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10, alignItems: 'center' },
   sizeChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
   sizeChipText: { fontSize: 12, fontWeight: '600' },
+  addSizeForm: { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 4, borderRadius: 8, borderWidth: 1 },
+  addSizeInput: { width: 50, height: 28, borderRadius: 6, borderWidth: 1, textAlign: 'center', fontSize: 12, padding: 0 },
+  addSizeBtn: { width: 28, height: 28, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
   qtyList: { gap: 8 },
   qtyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   qtyLabel: { fontSize: 14, fontWeight: '600', width: 40 },

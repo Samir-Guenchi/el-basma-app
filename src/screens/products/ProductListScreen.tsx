@@ -90,11 +90,6 @@ export const ProductListScreen: React.FC = () => {
     }
   };
 
-  const handleQty = (product: Product, delta: number) => {
-    const newQty = Math.max(0, product.quantity + delta);
-    updateProduct(product.id, { quantity: newQty, inStock: newQty > 0 });
-  };
-
   const renderProduct = ({ item }: { item: Product }) => {
     const hasImages = item.images && Array.isArray(item.images) && item.images.length > 0;
     const imageUri = hasImages ? getImageUrl(item.images[0]) : null;
@@ -132,21 +127,12 @@ export const ProductListScreen: React.FC = () => {
         <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>{item.name}</Text>
         <Text style={[styles.productCat, { color: colors.textMuted }]}>{item.category}</Text>
         <Text style={[styles.productPrice, { color: colors.primary }]}>{formatPrice(item.price)}</Text>
-      </View>
-
-      {/* Quantity */}
-      <View style={[styles.qtyRow, { borderTopColor: colors.border }]}>
-        <TouchableOpacity style={[styles.qtyBtn, { backgroundColor: colors.warningSoft }]} onPress={() => handleQty(item, -1)}>
-          <Feather name="minus" size={16} color={colors.warning} />
-        </TouchableOpacity>
-        <View style={[styles.qtyBox, { backgroundColor: item.quantity > lowStockThreshold ? colors.successSoft : colors.warningSoft }]}>
-          <Text style={[styles.qtyText, { color: item.quantity > lowStockThreshold ? colors.success : colors.warning }]}>
-            {item.quantity}
+        {/* Stock indicator */}
+        <View style={[styles.stockBadge, { backgroundColor: item.quantity > lowStockThreshold ? colors.successSoft : colors.warningSoft }]}>
+          <Text style={[styles.stockText, { color: item.quantity > lowStockThreshold ? colors.success : colors.warning }]}>
+            {item.quantity} {t('products.units')}
           </Text>
         </View>
-        <TouchableOpacity style={[styles.qtyBtn, { backgroundColor: colors.successSoft }]} onPress={() => handleQty(item, 1)}>
-          <Feather name="plus" size={16} color={colors.success} />
-        </TouchableOpacity>
       </View>
 
       {/* Actions */}
@@ -436,34 +422,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 4,
   },
-
-  // Quantity
-  qtyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderTopWidth: 1,
-    gap: 8,
-  },
-  qtyBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qtyBox: {
-    paddingHorizontal: 14,
+  stockBadge: {
+    marginTop: 6,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
-    minWidth: 40,
-    alignItems: 'center',
+    borderRadius: 6,
+    alignSelf: 'flex-start',
   },
-  qtyText: {
-    fontSize: 13,
-    fontWeight: '700',
+  stockText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
 
   // Card Actions
@@ -471,7 +439,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 6,
     paddingHorizontal: 10,
-    paddingBottom: 10,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#E8E8E8',
   },
   actionBtn: {
     flex: 1,
