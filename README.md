@@ -1,67 +1,101 @@
-# Boutique Manager - Women's Boutique Mobile App
+# El Basma App
 
-A production-ready React Native (Expo) mobile application for managing a women's boutique. Features owner-facing management tools and a customer-lite view with full multilingual support including RTL languages.
+A React Native mobile application for managing a traditional clothing boutique (Djellaba El Basma). Built with Expo and following SOLID principles and clean architecture patterns.
+
+## Architecture Overview
+
+The application follows a layered architecture based on SOLID principles:
+
+```
+src/
+├── domain/           # Business entities and repository interfaces
+├── infrastructure/   # API client, repository implementations, external services
+├── application/      # State management (Zustand stores)
+├── presentation/     # UI components
+├── screens/          # Screen components
+├── navigation/       # Navigation configuration
+├── hooks/            # Custom React hooks
+├── i18n/             # Internationalization
+├── theme/            # Theme configuration
+├── context/          # React contexts
+├── utils/            # Utility functions
+├── config/           # App configuration
+├── services/         # Legacy service exports (backward compatibility)
+├── store/            # Legacy store exports (backward compatibility)
+├── components/       # Legacy component exports (backward compatibility)
+└── types/            # Legacy type exports (backward compatibility)
+```
+
+## SOLID Principles Applied
+
+### Single Responsibility Principle (SRP)
+- Each entity file contains only one data structure
+- Each repository handles only one domain entity
+- Each store manages only one slice of state
+
+### Open/Closed Principle (OCP)
+- Repository interfaces allow adding new implementations without modifying existing code
+- Entity exports are centralized for easy extension
+
+### Liskov Substitution Principle (LSP)
+- Repository implementations can be swapped without affecting consumers
+- All repositories implement their respective interfaces
+
+### Interface Segregation Principle (ISP)
+- Small, focused interfaces for each repository
+- Separate interfaces for different concerns (products, orders, settings)
+
+### Dependency Inversion Principle (DIP)
+- High-level modules depend on abstractions (interfaces)
+- Infrastructure layer implements domain interfaces
+- Application layer uses abstractions, not concrete implementations
+
+## Layer Descriptions
+
+### Domain Layer (`src/domain/`)
+Contains business entities and repository interfaces. This layer has no dependencies on other layers.
+
+- `entities/` - Data structures (Product, Order, User, Settings, Notification)
+- `repositories/` - Interface definitions for data access
+
+### Infrastructure Layer (`src/infrastructure/`)
+Contains implementations of domain interfaces and external service integrations.
+
+- `api/` - HTTP client configuration and base URL management
+- `repositories/` - Concrete implementations of domain repository interfaces
+- `services/` - External services (Upload, Chat)
+
+### Application Layer (`src/application/`)
+Contains state management using Zustand stores.
+
+- `state/` - Zustand stores for auth, products, orders, settings, LLM settings
+
+### Presentation Layer (`src/presentation/`)
+Contains reusable UI components.
+
+- `components/common/` - Shared components (Toast, OfflineBanner, LanguageSwitcher)
 
 ## Features
 
-- **Multi-role Authentication**: Owner (full CRUD), Staff (limited), Customer (view + order interest)
-- **Product Management**: Full CRUD with translated content, images, categories, and tags
-- **Daily Stock Calendar**: 7-day timeline view and monthly calendar for stock management
-- **Bulk Stock Upload**: CSV import for daily availability data
-- **Multilingual Support**: English, French, Arabic (RTL), and Algerian Darija (RTL)
-- **Offline Support**: Read-through cache with sync strategy and optimistic UI updates
-- **Push Notifications**: Low-stock alerts, new orders, and order updates
+- Product management (CRUD operations)
+- Order tracking and management
+- Multi-language support (French, English, Arabic, Algerian dialect)
+- Dark/Light theme support
+- Offline capability with optimistic updates
+- Image and video upload with embedding support
+- Category management
+- Low stock alerts
+- Real-time sync with backend
 
 ## Tech Stack
 
-- **Framework**: React Native with Expo SDK 50
-- **Language**: TypeScript
-- **Navigation**: React Navigation v6
-- **State Management**: Zustand with persistence
-- **Internationalization**: react-i18next + expo-localization
-- **Forms**: Formik + Yup validation
-- **HTTP Client**: Axios with interceptors
-- **Testing**: Jest + React Native Testing Library
-
-## Project Structure
-
-```
-boutique-app/
-├── src/
-│   ├── components/       # Reusable UI components
-│   │   ├── ProductList.tsx
-│   │   ├── ProductCalendar.tsx
-│   │   ├── LanguageSwitcher.tsx
-│   │   └── OfflineBanner.tsx
-│   ├── screens/          # Screen components
-│   │   ├── auth/
-│   │   ├── products/
-│   │   ├── orders/
-│   │   ├── DashboardScreen.tsx
-│   │   ├── CalendarScreen.tsx
-│   │   └── SettingsScreen.tsx
-│   ├── navigation/       # Navigation configuration
-│   ├── store/            # Zustand stores
-│   │   ├── authStore.ts
-│   │   ├── productStore.ts
-│   │   └── settingsStore.ts
-│   ├── services/         # API services
-│   ├── hooks/            # Custom hooks
-│   ├── i18n/             # Internationalization
-│   │   ├── locales/      # Translation files
-│   │   │   ├── en.json
-│   │   │   ├── fr.json
-│   │   │   ├── ar.json
-│   │   │   └── dz.json   # Algerian Darija
-│   │   └── index.ts
-│   ├── types/            # TypeScript types
-│   └── utils/            # Utility functions
-│       └── rtl.ts        # RTL helpers
-├── __tests__/            # Test files
-├── docs/
-│   └── api-contract.yaml # OpenAPI specification
-└── App.tsx
-```
+- React Native with Expo
+- TypeScript
+- Zustand for state management
+- React Navigation
+- Axios for HTTP requests
+- i18next for internationalization
+- AsyncStorage for local persistence
 
 ## Getting Started
 
@@ -69,217 +103,64 @@ boutique-app/
 
 - Node.js 18+
 - npm or yarn
-- Expo CLI (`npm install -g expo-cli`)
-- iOS Simulator (Mac) or Android Emulator
+- Expo CLI
 
 ### Installation
 
 ```bash
-# Clone the repository
-cd boutique-app
-
 # Install dependencies
 npm install
 
 # Start the development server
 npm start
-```
 
-### Running on Device/Emulator
-
-```bash
-# iOS
-npm run ios
-
-# Android
+# Run on Android
 npm run android
 
-# Web (limited support)
+# Run on iOS
+npm run ios
+
+# Run on web
 npm run web
 ```
 
-## Configuration
+### Environment Configuration
 
-### Environment Variables
+The app connects to a backend API. Configure the API URL in `src/infrastructure/api/config.ts`:
 
-Create a `.env` file in the root directory:
+- Production: `https://web-production-1c70.up.railway.app/api`
+- Development Android: `http://192.168.43.220:3001/api`
+- Development iOS: `http://localhost:3001/api`
 
-```env
-EXPO_PUBLIC_API_URL=https://api.boutique.example.com/v1
-```
+## Scripts
 
-### API Backend
+- `npm start` - Start Expo development server
+- `npm run android` - Run on Android device/emulator
+- `npm run ios` - Run on iOS simulator
+- `npm run web` - Run in web browser
+- `npm test` - Run tests
+- `npm run lint` - Run ESLint
+- `npm run type-check` - Run TypeScript type checking
 
-The app expects a REST API backend. See `docs/api-contract.yaml` for the full OpenAPI specification.
+## Project Structure Details
 
-## Internationalization
+### Backward Compatibility
 
-### Supported Locales
+Legacy import paths are maintained through re-export files:
+- `src/types/index.ts` re-exports from `domain/entities`
+- `src/store/index.ts` re-exports from `application/state`
+- `src/components/index.ts` re-exports from `presentation/components`
+- `src/services/api.ts` provides legacy API object format
 
-| Code | Language | Direction |
-|------|----------|-----------|
-| `en` | English | LTR |
-| `fr` | French | LTR |
-| `ar` | Arabic | RTL |
-| `dz` | Algerian Darija | RTL |
+### Adding New Features
 
-### Fallback Chain
-
-`Current Locale → French → English`
-
-### Adding Translations
-
-1. Add translations to `src/i18n/locales/{locale}.json`
-2. Use in components:
-
-```tsx
-import { useTranslation } from 'react-i18next';
-
-const { t } = useTranslation();
-<Text>{t('products.title')}</Text>
-```
-
-### RTL Support
-
-RTL layouts are automatically applied for Arabic and Darija. Use RTL utilities:
-
-```tsx
-import { isRTL, getFlexDirection, getTextAlign } from '@/utils/rtl';
-
-<View style={{ flexDirection: getFlexDirection() }}>
-  <Text style={{ textAlign: getTextAlign() }}>{text}</Text>
-</View>
-```
-
-## Data Models
-
-### Product
-
-```typescript
-interface Product {
-  id: string;
-  name: TranslatedText;        // { en, fr, ar, dz }
-  description: TranslatedText;
-  images: string[];
-  category: string;
-  price: number;
-  currency: string;
-  sku: string;
-  stockByDate: StockByDate[];  // [{ date, quantity }]
-  availabilityStatus: 'in-stock' | 'limited' | 'out-of-stock';
-  tags: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-```
-
-### User Roles
-
-- **Owner**: Full CRUD on products, orders, categories, tags
-- **Staff**: View all, edit products and orders
-- **Customer**: View products, create order requests
-
-## Offline Support
-
-The app implements a read-through cache with optimistic updates:
-
-1. **Read Operations**: Serve from cache, refresh in background
-2. **Write Operations**: Apply optimistically, queue for sync
-3. **Sync**: Automatic when online, manual trigger available
-
-Pending changes are persisted and synced when connectivity is restored.
-
-## Testing
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Run specific test file
-npm test -- productStore.test.ts
-```
-
-### Test Structure
-
-- `__tests__/store/` - Store/reducer tests
-- `__tests__/hooks/` - Custom hook tests
-- `__tests__/utils/` - Utility function tests
-- `__tests__/components/` - Component integration tests
-
-## Building for Production
-
-### Expo EAS Build
-
-```bash
-# Install EAS CLI
-npm install -g eas-cli
-
-# Configure EAS
-eas build:configure
-
-# Build for iOS
-eas build --platform ios
-
-# Build for Android
-eas build --platform android
-```
-
-### Environment-specific Builds
-
-```bash
-# Production
-eas build --platform all --profile production
-
-# Preview/Staging
-eas build --platform all --profile preview
-```
-
-## Deployment
-
-### Over-the-Air Updates
-
-```bash
-eas update --branch production --message "Bug fixes"
-```
-
-### App Store / Play Store
-
-1. Build production binaries with EAS
-2. Submit via `eas submit` or manually upload
-
-## CSV Bulk Upload Format
-
-For bulk stock updates, use this CSV format:
-
-```csv
-sku,date,quantity
-SKU-001,2024-01-15,10
-SKU-001,2024-01-16,8
-SKU-002,2024-01-15,5
-```
-
-## API Contract
-
-Full API documentation is available in OpenAPI 3.0 format at `docs/api-contract.yaml`.
-
-Key endpoints:
-- `POST /auth/login` - User authentication
-- `GET /products` - List products with filters
-- `PUT /products/{id}/stock` - Update daily stock
-- `POST /products/stock/bulk` - Bulk stock upload
-- `GET /orders` - List orders
-- `PATCH /orders/{id}/status` - Update order status
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make changes with tests
-4. Submit a pull request
+1. Define entities in `domain/entities/`
+2. Create repository interface in `domain/repositories/`
+3. Implement repository in `infrastructure/repositories/`
+4. Create state store in `application/state/`
+5. Build UI components in `presentation/components/`
+6. Create screens in `screens/`
 
 ## License
 
-MIT License - see LICENSE file for details.
+Private - All rights reserved
