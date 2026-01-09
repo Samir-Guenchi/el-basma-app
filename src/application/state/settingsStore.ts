@@ -52,7 +52,11 @@ export const useSettingsStore = create<SettingsStore>()(
       fetchSettings: async () => {
         set({ isLoading: true });
         try {
-          const settings = await settingsApi.getSettings();
+          const settings = await settingsApi.getSettings() as {
+            currency?: Currency;
+            lowStockThreshold?: number;
+            notificationsEnabled?: boolean;
+          };
           const { locale: currentLocale, themeMode: currentTheme } = get();
           
           set({
