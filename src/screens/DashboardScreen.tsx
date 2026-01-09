@@ -79,14 +79,14 @@ export const DashboardScreen: React.FC = () => {
     surface: isDark ? '#1E1E1E' : '#FFFFFF',
     text: isDark ? '#FFFFFF' : '#1A1A1A',
     textSec: isDark ? '#B0B0B0' : '#555555',
-    textMuted: isDark ? '#808080' : '#666666',
+    textMuted: isDark ? '#A0A0A0' : '#555555', // Improved from #666666/#808080 for 7:1 contrast
     border: isDark ? '#2A2A2A' : '#E0E0E0',
-    primary: '#C13B5E',
-    primarySoft: isDark ? 'rgba(193, 59, 94, 0.15)' : 'rgba(193, 59, 94, 0.1)',
+    primary: '#B03052', // Improved from #C13B5E for 5.5:1 contrast
+    primarySoft: isDark ? 'rgba(176, 48, 82, 0.15)' : 'rgba(176, 48, 82, 0.1)',
     success: '#1E8449',
     successSoft: isDark ? 'rgba(30, 132, 73, 0.15)' : 'rgba(30, 132, 73, 0.1)',
-    warning: '#B7770A',
-    warningSoft: isDark ? 'rgba(183, 119, 10, 0.15)' : 'rgba(183, 119, 10, 0.1)',
+    warning: '#8B5A00', // Improved from #B7770A for 4.5:1 contrast on white
+    warningSoft: isDark ? 'rgba(139, 90, 0, 0.15)' : 'rgba(139, 90, 0, 0.1)',
     danger: '#C0392B',
     accent: '#7D3C98',
   };
@@ -191,6 +191,8 @@ export const DashboardScreen: React.FC = () => {
                   key={cat.value}
                   style={[styles.catCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
                   onPress={() => navigation.navigate('Home', { screen: 'ProductList' })}
+                  accessibilityLabel={`${cat.value}, ${count} ${t('dashboard.articles')}`}
+                  accessibilityRole="button"
                 >
                   <View style={[styles.catIconBox, { backgroundColor: colors.primarySoft }]}>
                     <MaterialCommunityIcons name="tag-outline" size={18} color={colors.primary} />
@@ -219,10 +221,16 @@ export const DashboardScreen: React.FC = () => {
 
           <View style={styles.productsGrid}>
             {recentProducts.map((product) => (
-              <View key={product.id} style={[styles.productCard, { backgroundColor: colors.surface }]}>
+              <View 
+                key={product.id} 
+                style={[styles.productCard, { backgroundColor: colors.surface }]}
+                accessible={true}
+                accessibilityLabel={`${product.name}, ${product.category}, ${formatPrice(product.price)}, ${product.quantity} ${t('products.units')}`}
+              >
                 <TouchableOpacity
                   onPress={() => navigation.navigate('Home', { screen: 'ProductDetail', params: { productId: product.id } })}
                   activeOpacity={0.9}
+                  accessibilityRole="button"
                 >
                   <View style={styles.productImageBox}>
                     {product.images && product.images.length > 0 ? (
@@ -257,14 +265,18 @@ export const DashboardScreen: React.FC = () => {
                   <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: colors.primarySoft }]}
                     onPress={() => navigation.navigate('Home', { screen: 'ProductEdit', params: { product } })}
+                    accessibilityLabel={`${t('common.edit')} ${product.name}`}
+                    accessibilityRole="button"
                   >
-                    <Feather name="edit-2" size={14} color={colors.primary} />
+                    <Feather name="edit-2" size={16} color={colors.primary} />
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.actionBtn, { backgroundColor: 'rgba(231, 76, 60, 0.1)' }]}
                     onPress={() => handleDelete(product)}
+                    accessibilityLabel={`${t('common.delete')} ${product.name}`}
+                    accessibilityRole="button"
                   >
-                    <Feather name="trash-2" size={14} color={colors.danger} />
+                    <Feather name="trash-2" size={16} color={colors.danger} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -279,6 +291,8 @@ export const DashboardScreen: React.FC = () => {
             <TouchableOpacity
               style={[styles.quickAction, { backgroundColor: colors.primary }]}
               onPress={() => navigation.navigate('Home', { screen: 'ProductEdit', params: { product: undefined } })}
+              accessibilityLabel={t('dashboard.newProduct')}
+              accessibilityRole="button"
             >
               <Feather name="plus" size={20} color="#FFF" />
               <Text style={styles.quickActionText}>{t('dashboard.newProduct')}</Text>
@@ -286,6 +300,8 @@ export const DashboardScreen: React.FC = () => {
             <TouchableOpacity
               style={[styles.quickAction, { backgroundColor: colors.accent }]}
               onPress={() => navigation.navigate('Orders')}
+              accessibilityLabel={t('orders.title')}
+              accessibilityRole="button"
             >
               <Feather name="shopping-bag" size={20} color="#FFF" />
               <Text style={styles.quickActionText}>{t('orders.title')}</Text>
@@ -358,8 +374,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statIcon: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -442,8 +458,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   catIconBox: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',

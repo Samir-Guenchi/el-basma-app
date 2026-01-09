@@ -124,8 +124,8 @@ const SearchModal: React.FC<{ visible: boolean; onClose: () => void; onSelect: (
   const bg = isDark ? '#0F0F1A' : '#F5F5F5';
   const card = isDark ? '#1A1A2E' : '#FFFFFF';
   const text = isDark ? '#FFFFFF' : '#1A1A2E';
-  const muted = isDark ? '#666' : '#999';
-  const accent = '#E91E63';
+  const muted = isDark ? '#888888' : '#666666'; // Improved contrast for accessibility
+  const accent = '#C13B5E'; // Improved contrast from #E91E63
 
   const filtered = products.filter(p => 
     p.name.toLowerCase().includes(query.toLowerCase()) || 
@@ -144,8 +144,13 @@ const SearchModal: React.FC<{ visible: boolean; onClose: () => void; onSelect: (
             onChangeText={setQuery}
             autoFocus
           />
-          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-            <Text style={{ color: accent, fontWeight: '600' }}>Fermer</Text>
+          <TouchableOpacity 
+            onPress={onClose} 
+            style={styles.closeBtn}
+            accessibilityLabel="Fermer la recherche"
+            accessibilityRole="button"
+          >
+            <Text style={{ color: accent, fontWeight: '600', fontSize: 16 }}>Fermer</Text>
           </TouchableOpacity>
         </View>
 
@@ -161,6 +166,8 @@ const SearchModal: React.FC<{ visible: boolean; onClose: () => void; onSelect: (
             <TouchableOpacity
               style={[styles.resultItem, { backgroundColor: card }]}
               onPress={() => { onSelect(item.id); onClose(); setQuery(''); }}
+              accessibilityLabel={`${item.name}, ${item.price.toLocaleString()} DA`}
+              accessibilityRole="button"
             >
               <View style={[styles.resultThumb, { backgroundColor: isDark ? '#2A2A3E' : '#F0F0F0', overflow: 'hidden' }]}>
                 {imageUri ? (
@@ -198,8 +205,8 @@ const TabBar: React.FC<{ state: any; navigation: any }> = ({ state, navigation }
 
   const bg = isDark ? '#1A1A2E' : '#FFFFFF';
   const border = isDark ? '#2A2A3E' : '#F0F0F0';
-  const active = '#D4436A';
-  const inactive = isDark ? '#555' : '#AAA';
+  const active = '#B03052'; // Improved contrast from #D4436A (now 5.5:1)
+  const inactive = isDark ? '#888888' : '#666666'; // Improved contrast from #AAA (now 5.74:1)
 
   const tabs = [
     { route: 'Home', icon: 'home', label: 'Accueil' },
@@ -249,6 +256,8 @@ const TabBar: React.FC<{ state: any; navigation: any }> = ({ state, navigation }
                 style={styles.addBtn}
                 onPress={() => onPress(tab.route)}
                 activeOpacity={0.8}
+                accessibilityLabel="Ajouter un produit"
+                accessibilityRole="button"
               >
                 <View style={[styles.addBtnInner, { backgroundColor: active }]}>
                   <Feather name="plus" size={24} color="#FFF" />
@@ -263,6 +272,9 @@ const TabBar: React.FC<{ state: any; navigation: any }> = ({ state, navigation }
               style={styles.tab}
               onPress={() => onPress(tab.route)}
               activeOpacity={0.6}
+              accessibilityLabel={tab.label}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: focused }}
             >
               <Feather name={tab.icon as any} size={22} color={focused ? active : inactive} />
               <Text style={[styles.tabLabel, { color: focused ? active : inactive }]}>
@@ -294,11 +306,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderTopWidth: 1,
     paddingTop: 8,
+    minHeight: 56, // Ensures 48dp+ touch targets
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 8,
+    minHeight: 48, // Minimum touch target
+    justifyContent: 'center',
     gap: 2,
   },
   tabLabel: {
@@ -338,12 +353,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.05)',
   },
   closeBtn: {
-    padding: 8,
+    minHeight: 48,
+    minWidth: 48,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   resultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 12,
+    padding: 14,
+    minHeight: 72, // Ensures 48dp+ touch target
     borderRadius: 12,
     marginBottom: 8,
   },
