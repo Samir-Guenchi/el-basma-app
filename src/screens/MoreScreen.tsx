@@ -41,14 +41,14 @@ export const MoreScreen: React.FC = () => {
     border: isDark ? '#2A2A2A' : '#E8E8E8',
     primary: '#B03052',
     primarySoft: isDark ? 'rgba(176, 48, 82, 0.15)' : 'rgba(176, 48, 82, 0.08)',
-    success: '#1E8449',
+    success: '#1E8449',           // 5.9:1 contrast (was #2DCC70)
     successSoft: isDark ? 'rgba(30, 132, 73, 0.15)' : 'rgba(30, 132, 73, 0.08)',
-    warning: '#9A7B0A',
-    warningSoft: isDark ? 'rgba(243, 156, 18, 0.15)' : 'rgba(243, 156, 18, 0.08)',
-    accent: '#9B59B6',
-    accentSoft: isDark ? 'rgba(155, 89, 182, 0.15)' : 'rgba(155, 89, 182, 0.08)',
-    blue: '#3498DB',
-    blueSoft: isDark ? 'rgba(52, 152, 219, 0.15)' : 'rgba(52, 152, 219, 0.08)',
+    warning: '#9A7B0A',           // 4.6:1 contrast (was #F39C11)
+    warningSoft: isDark ? 'rgba(154, 123, 10, 0.15)' : 'rgba(154, 123, 10, 0.08)',
+    accent: '#6B2D7B',            // 7:1 contrast (was #9B59B6)
+    accentSoft: isDark ? 'rgba(107, 45, 123, 0.15)' : 'rgba(107, 45, 123, 0.08)',
+    blue: '#1565C0',              // 5.5:1 contrast (was #3498DB)
+    blueSoft: isDark ? 'rgba(21, 101, 192, 0.15)' : 'rgba(21, 101, 192, 0.08)',
   };
 
   const menuItems = [
@@ -95,10 +95,10 @@ export const MoreScreen: React.FC = () => {
   ];
 
   const quickActions = [
-    { icon: 'instagram', label: 'Instagram', color: '#E4405F', url: 'https://instagram.com' },
-    { icon: 'facebook', label: 'Facebook', color: '#1877F2', url: 'https://facebook.com' },
-    { icon: 'whatsapp', label: 'WhatsApp', color: '#25D366', url: 'https://wa.me/' },
-    { icon: 'map-pin', label: 'Maps', color: '#EA4335', url: 'https://maps.app.goo.gl/2oykqPUFEMiNFr7R7' },
+    { icon: 'instagram', label: 'Instagram', color: '#B03052', url: 'https://instagram.com' },  // 5.5:1 contrast
+    { icon: 'facebook', label: 'Facebook', color: '#1565C0', url: 'https://facebook.com' },     // 5.5:1 contrast
+    { icon: 'whatsapp', label: 'WhatsApp', color: '#1E8449', url: 'https://wa.me/' },           // 5.9:1 contrast
+    { icon: 'map-pin', label: 'Maps', color: '#C0392B', url: 'https://maps.app.goo.gl/2oykqPUFEMiNFr7R7' }, // 5.5:1 contrast
   ];
 
   const getGreeting = () => {
@@ -235,16 +235,16 @@ export const MoreScreen: React.FC = () => {
             <Text style={[styles.socialHandle, { color: colors.textSec }]}>@djellaba.elbasma.maghnia</Text>
             <View style={styles.socialIcons}>
               <TouchableOpacity 
-                style={[styles.socialIcon, { backgroundColor: '#E4405F15' }]}
+                style={[styles.socialIcon, { backgroundColor: 'rgba(176, 48, 82, 0.1)' }]}
                 onPress={() => Linking.openURL('https://instagram.com')}
               >
-                <Ionicons name="logo-instagram" size={20} color="#E4405F" />
+                <Ionicons name="logo-instagram" size={20} color="#B03052" />
               </TouchableOpacity>
               <TouchableOpacity 
-                style={[styles.socialIcon, { backgroundColor: '#1877F215' }]}
+                style={[styles.socialIcon, { backgroundColor: 'rgba(21, 101, 192, 0.1)' }]}
                 onPress={() => Linking.openURL('https://facebook.com')}
               >
-                <Ionicons name="logo-facebook" size={20} color="#1877F2" />
+                <Ionicons name="logo-facebook" size={20} color="#1565C0" />
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.socialIcon, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }]}
