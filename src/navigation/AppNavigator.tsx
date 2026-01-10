@@ -305,19 +305,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderTopWidth: 1,
-    paddingTop: 8,
-    minHeight: 56, // Ensures 48dp+ touch targets
+    paddingTop: 10,
+    minHeight: 60, // Ensures 48dp+ touch targets with padding
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
-    minHeight: 48, // Minimum touch target
+    paddingVertical: 10,
+    minHeight: 50, // Minimum touch target (48dp + padding)
     justifyContent: 'center',
-    gap: 2,
+    gap: 4,
   },
   tabLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '500',
   },
   addBtn: {
@@ -326,13 +326,13 @@ const styles = StyleSheet.create({
     marginTop: -20,
   },
   addBtnInner: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     ...Platform.select({
-      ios: { shadowColor: '#D4436A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
+      ios: { shadowColor: '#B03052', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 },
       android: { elevation: 6 },
     }),
   },
