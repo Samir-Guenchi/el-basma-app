@@ -947,30 +947,30 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderRadius: 12, padding: 14, fontSize: 15 },
   textArea: { height: 80, textAlignVertical: 'top' },
 
-  // Wholesale
+  // Wholesale - 48dp minimum touch targets
   wholesaleRow: { flexDirection: 'row', gap: 12 },
   wholesaleInput: { flex: 1 },
   minQtyContainer: { alignItems: 'center' },
   minQtyLabel: { fontSize: 11, marginBottom: 6 },
   minQtyControls: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  minQtyBtn: { width: 28, height: 28, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  minQtyInput: { width: 40, height: 36, borderRadius: 8, borderWidth: 1, textAlign: 'center', fontWeight: '600', fontSize: 14 },
+  minQtyBtn: { width: 48, height: 48, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  minQtyInput: { width: 48, height: 48, borderRadius: 8, borderWidth: 1, textAlign: 'center', fontWeight: '600', fontSize: 14 },
   wholesaleHint: { fontSize: 12, marginTop: 8, fontStyle: 'italic' },
 
-  // Website Toggle
-  websiteToggle: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 12, borderWidth: 1, gap: 12 },
-  websiteToggleIcon: { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  // Website Toggle - 48dp minimum
+  websiteToggle: { flexDirection: 'row', alignItems: 'center', padding: 14, minHeight: 56, borderRadius: 12, borderWidth: 1, gap: 12 },
+  websiteToggleIcon: { width: 48, height: 48, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   websiteToggleTitle: { fontSize: 15, fontWeight: '600' },
   websiteToggleHint: { fontSize: 12, marginTop: 2 },
-  websiteToggleSwitch: { width: 44, height: 24, borderRadius: 12, justifyContent: 'center' },
-  websiteToggleDot: { width: 20, height: 20, borderRadius: 10, backgroundColor: '#FFF' },
+  websiteToggleSwitch: { width: 48, height: 28, borderRadius: 14, justifyContent: 'center' },
+  websiteToggleDot: { width: 24, height: 24, borderRadius: 12, backgroundColor: '#FFF' },
 
   // Media
   mediaScroll: { marginTop: 4 },
   mediaItem: { width: 90, height: 90, marginRight: 10, borderRadius: 12, overflow: 'hidden' },
   mediaImage: { width: '100%', height: '100%' },
   videoOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.3)', alignItems: 'center', justifyContent: 'center' },
-  removeMedia: { position: 'absolute', top: 4, right: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: '#E74C3C', alignItems: 'center', justifyContent: 'center' },
+  removeMedia: { position: 'absolute', top: 4, right: 4, width: 28, height: 28, borderRadius: 14, backgroundColor: '#C0392B', alignItems: 'center', justifyContent: 'center' },
   addMediaBtn: { width: 90, height: 90, borderRadius: 12, borderWidth: 1.5, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
   addMediaText: { fontSize: 11, marginTop: 4 },
   mediaHint: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, borderRadius: 8, marginTop: 10 },
@@ -982,7 +982,7 @@ const styles = StyleSheet.create({
   catChip: { paddingHorizontal: 16, paddingVertical: 12, minHeight: 48, borderRadius: 10, borderWidth: 1, marginRight: 8, justifyContent: 'center' },
   catChipText: { fontSize: 13, fontWeight: '500', textTransform: 'capitalize' },
 
-  // Color inventory
+  // Color inventory - 48dp minimum touch targets
   colorCard: { borderRadius: 12, borderWidth: 1, padding: 12, marginBottom: 10 },
   colorHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   colorNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -990,40 +990,40 @@ const styles = StyleSheet.create({
   colorName: { fontSize: 15, fontWeight: '600' },
   colorActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   colorQty: { fontSize: 13 },
-  sizesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10, alignItems: 'center' },
-  sizeChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
-  sizeChipText: { fontSize: 12, fontWeight: '600' },
-  addSizeForm: { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 4, borderRadius: 8, borderWidth: 1 },
-  addSizeInput: { width: 50, height: 28, borderRadius: 6, borderWidth: 1, textAlign: 'center', fontSize: 12, padding: 0 },
-  addSizeBtn: { width: 28, height: 28, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  qtyList: { gap: 8 },
-  qtyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  qtyLabel: { fontSize: 14, fontWeight: '600', width: 40 },
-  qtyControls: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  qtyBtn: { width: 30, height: 30, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
-  qtyInput: { width: 50, height: 30, borderRadius: 8, borderWidth: 1, textAlign: 'center', fontWeight: '600' },
+  sizesRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10, alignItems: 'center' },
+  sizeChip: { minWidth: 48, minHeight: 48, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  sizeChipText: { fontSize: 13, fontWeight: '600' },
+  addSizeForm: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 6, borderRadius: 8, borderWidth: 1 },
+  addSizeInput: { width: 56, height: 40, borderRadius: 6, borderWidth: 1, textAlign: 'center', fontSize: 13, padding: 0 },
+  addSizeBtn: { width: 48, height: 48, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  qtyList: { gap: 10 },
+  qtyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 48 },
+  qtyLabel: { fontSize: 14, fontWeight: '600', width: 48 },
+  qtyControls: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  qtyBtn: { width: 48, height: 48, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  qtyInput: { width: 64, height: 48, borderRadius: 10, borderWidth: 1, textAlign: 'center', fontWeight: '600', fontSize: 16 },
 
-  addColorBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 14, borderRadius: 12, gap: 8 },
+  addColorBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 48, padding: 14, borderRadius: 12, gap: 8 },
   addColorText: { fontSize: 14, fontWeight: '600' },
   addColorForm: { borderRadius: 12, borderWidth: 1, padding: 12 },
   colorSuggestions: { marginVertical: 10 },
-  colorSuggest: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1, marginRight: 8 },
+  colorSuggest: { minHeight: 48, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, borderWidth: 1, marginRight: 8, justifyContent: 'center' },
   addColorActions: { flexDirection: 'row', gap: 10 },
-  cancelBtn: { flex: 1, padding: 12, borderRadius: 10, borderWidth: 1, alignItems: 'center' },
-  confirmBtn: { flex: 1, padding: 12, borderRadius: 10, alignItems: 'center' },
+  cancelBtn: { flex: 1, minHeight: 48, padding: 14, borderRadius: 10, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  confirmBtn: { flex: 1, minHeight: 48, padding: 14, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
 
   // Publishing status
   publishStatusCard: { borderRadius: 12, borderWidth: 1, padding: 14, marginBottom: 16 },
   publishStatusTitle: { fontSize: 14, fontWeight: '600', marginBottom: 12 },
   publishStatusRow: { flexDirection: 'row', gap: 8 },
-  publishStatusItem: { flex: 1, flexDirection: 'row', alignItems: 'center', padding: 10, borderRadius: 10, gap: 6 },
-  publishStatusDot: { width: 6, height: 6, borderRadius: 3 },
+  publishStatusItem: { flex: 1, flexDirection: 'row', alignItems: 'center', minHeight: 48, padding: 12, borderRadius: 10, gap: 6 },
+  publishStatusDot: { width: 8, height: 8, borderRadius: 4 },
   publishStatusLabel: { flex: 1, fontSize: 11, fontWeight: '500' },
 
-  // Publish button
-  publishBtn: { flexDirection: 'row', alignItems: 'center', padding: 16, borderRadius: 14, marginBottom: 16 },
+  // Publish button - 48dp minimum
+  publishBtn: { flexDirection: 'row', alignItems: 'center', minHeight: 56, padding: 16, borderRadius: 14, marginBottom: 16 },
   publishBtnText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
-  publishBtnHint: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 2 },
+  publishBtnHint: { color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 2 },
 
   // Action buttons - 48dp minimum touch target
   actionButtons: { flexDirection: 'row', gap: 12 },
@@ -1032,33 +1032,33 @@ const styles = StyleSheet.create({
   submitAction: { flex: 2, flexDirection: 'row', minHeight: 48, padding: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center', gap: 8 },
   submitActionText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 
-  // Modals
+  // Modals - 48dp minimum touch targets
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   modalContent: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20 },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
   modalTitle: { fontSize: 18, fontWeight: '600' },
-  modalOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 12, marginBottom: 10, gap: 10 },
+  modalOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', minHeight: 48, padding: 16, borderRadius: 12, marginBottom: 10, gap: 10 },
   modalOptionText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
-  modalCancel: { padding: 16, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
-  modalSubmit: { flexDirection: 'row', padding: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center', gap: 8 },
+  modalCancel: { minHeight: 48, padding: 16, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  modalSubmit: { flexDirection: 'row', minHeight: 48, padding: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center', gap: 8 },
   modalSubmitText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 
-  // Publish modal
+  // Publish modal - 48dp minimum touch targets
   publishModal: { borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, maxHeight: '85%' },
   publishLabel: { fontSize: 14, fontWeight: '600', marginBottom: 10 },
-  langChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, borderWidth: 1, marginRight: 8, gap: 6 },
-  langFlag: { fontSize: 11, fontWeight: '700' },
+  langChip: { flexDirection: 'row', alignItems: 'center', minHeight: 48, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 10, borderWidth: 1, marginRight: 8, gap: 6 },
+  langFlag: { fontSize: 12, fontWeight: '700' },
   langText: { fontSize: 13, fontWeight: '500' },
-  platformRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14, borderRadius: 12, borderWidth: 1, marginBottom: 8 },
+  platformRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 56, padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 8 },
   platformName: { fontSize: 15, fontWeight: '500' },
-  platformCheck: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  platformCheck: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
   captionSection: { marginTop: 16 },
   captionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  customInstructionInput: { borderWidth: 1, borderRadius: 10, padding: 12, fontSize: 13, minHeight: 50, textAlignVertical: 'top' },
-  genBtn: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
-  genBtnText: { color: '#FFF', fontSize: 13, fontWeight: '600' },
+  customInstructionInput: { borderWidth: 1, borderRadius: 10, padding: 14, fontSize: 14, minHeight: 56, textAlignVertical: 'top' },
+  genBtn: { minHeight: 48, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  genBtnText: { color: '#FFF', fontSize: 14, fontWeight: '600' },
   captionInput: { borderWidth: 1, borderRadius: 12, padding: 14, fontSize: 14, minHeight: 100, textAlignVertical: 'top' },
-  publishNowBtn: { padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 20, marginBottom: 30 },
+  publishNowBtn: { minHeight: 48, padding: 16, borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginTop: 20, marginBottom: 30 },
   publishNowText: { color: '#FFF', fontSize: 15, fontWeight: '600' },
 });
 
