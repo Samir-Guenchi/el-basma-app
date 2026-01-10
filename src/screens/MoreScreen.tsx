@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   storeGradient: {
-    backgroundColor: '#D4436A',
+    backgroundColor: '#B03052', // Improved contrast: 5.5:1 (was #D4436A)
     padding: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 10,
   },
-  promoText: { color: '#D4436A', fontSize: 14, fontWeight: '800' },
+  promoText: { color: '#B03052', fontSize: 14, fontWeight: '800' }, // Improved contrast: 5.5:1
   storeStats: {
     flexDirection: 'row',
     paddingVertical: 14,

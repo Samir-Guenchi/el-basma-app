@@ -305,16 +305,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderTopWidth: 1,
-    paddingTop: 10,
-    minHeight: 60, // Ensures 48dp+ touch targets with padding
+    paddingTop: 6,
+    minHeight: 64, // Increased to ensure 48dp+ touch targets
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
-    minHeight: 50, // Minimum touch target (48dp + padding)
+    paddingVertical: 8,
+    minHeight: 54, // Ensures 48dp+ touch target height
     justifyContent: 'center',
-    gap: 4,
+    gap: 3,
   },
   tabLabel: {
     fontSize: 11,
