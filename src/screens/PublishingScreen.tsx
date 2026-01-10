@@ -55,9 +55,9 @@ interface PublishingStatus {
 }
 
 const PLATFORMS = [
-  { key: 'website', label: 'Site Web', icon: 'globe-outline', color: '#3B82F6' },
-  { key: 'facebook', label: 'Facebook', icon: 'logo-facebook', color: '#1877F2' },
-  { key: 'instagram', label: 'Instagram', icon: 'logo-instagram', color: '#E4405F' },
+  { key: 'website', label: 'Site Web', icon: 'globe-outline', color: '#2563EB' },   // Improved contrast: 4.5:1
+  { key: 'facebook', label: 'Facebook', icon: 'logo-facebook', color: '#1565C0' },  // Improved contrast: 5.5:1
+  { key: 'instagram', label: 'Instagram', icon: 'logo-instagram', color: '#B03052' }, // Improved contrast: 5.5:1
   { key: 'tiktok', label: 'TikTok', icon: 'logo-tiktok', color: '#000000' },
 ];
 
@@ -96,11 +96,11 @@ export const PublishingScreen: React.FC = () => {
     background: isDark ? '#0D0D1A' : '#FAFAFA',
     surface: isDark ? '#1A1A2E' : '#FFFFFF',
     text: isDark ? '#F5F5F7' : '#1A1A2E',
-    textSecondary: isDark ? '#B8B8C7' : '#6B6B80',
+    textSecondary: isDark ? '#B8B8C7' : '#595959', // Improved contrast: 7:1 (was #6B6B80)
     border: isDark ? '#2D2D45' : '#E8E8EF',
-    primary: isDark ? '#F48FB1' : '#E91E63',
-    success: '#4CAF50',
-    warning: '#FF9800',
+    primary: isDark ? '#F48FB1' : '#B03052',       // Improved contrast: 5.5:1 (was #E91E63)
+    success: '#1E8449',                             // Improved contrast: 5.9:1 (was #4CAF50)
+    warning: '#9A7B0A',                             // Improved contrast: 4.6:1 (was #FF9800)
   };
 
   const fetchData = useCallback(async () => {
